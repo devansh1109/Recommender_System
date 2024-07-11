@@ -39,7 +39,8 @@ const GraphComponent = ({ domain }) => {
             data: {
               id: edge.id,
               source: edge.source,
-              target: edge.target
+              target: edge.target,
+              label: edge.label // Set edge label to indicate direct or indirect
             }
           });
         });
@@ -67,13 +68,13 @@ const GraphComponent = ({ domain }) => {
             selector: 'node[type="Person"]',
             style: {
               'label': 'data(label)',
-              'width': 50,
-              'height': 50,
+              'width': 100,
+              'height': 100,
               'background-color': 'gold',
               'color': 'black',
               'text-valign': 'center',
               'text-halign': 'center',
-              'font-size': 14,
+              'font-size': 20,
               'text-wrap': 'wrap',
               'text-max-width': 100,
               'padding': '30px'
@@ -83,13 +84,13 @@ const GraphComponent = ({ domain }) => {
             selector: 'node[type="Domain"]',
             style: {
               'label': 'data(label)',
-              'width': 100,
-              'height': 100,
-              'background-color': 'Gray',
+              'width': 150,
+              'height': 150,
+              'background-color': 'gray',
               'color': '#fff',
               'text-valign': 'center',
               'text-halign': 'center',
-              'font-size': 16,
+              'font-size': 24,
               'text-wrap': 'wrap',
               'text-max-width': 100,
               'padding': '10px',
@@ -97,12 +98,22 @@ const GraphComponent = ({ domain }) => {
             }
           },
           {
-            selector: 'edge[label]',
+            selector: 'edge[label="EXPERT_IN_DIRECT"]',
             style: {
-              'label': 'data(label)',
               'width': 3,
-              'line-color': '#ccc',
-              'target-arrow-color': '#ccc',
+              'line-color': '#7DFF33',
+              'target-arrow-color': '#00f',
+              'target-arrow-shape': 'triangle',
+              'curve-style': 'bezier',
+              'control-point-step-size': 80
+            }
+          },
+          {
+            selector: 'edge[label="EXPERT_IN_INDIRECT"]',
+            style: {
+              'width': 3,
+              'line-color': '#f00',
+              'target-arrow-color': '#f00',
               'target-arrow-shape': 'triangle',
               'curve-style': 'bezier',
               'control-point-step-size': 80
@@ -130,7 +141,7 @@ const GraphComponent = ({ domain }) => {
         }
       });
     }
-  }, [elements, containerRef]);
+  }, [elements]);
 
   return (
     <div ref={containerRef} id="cy" style={{ height: '600px' }}></div>

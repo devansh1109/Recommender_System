@@ -31,6 +31,83 @@ app.use(async (req, res, next) => {
   next();
 });
 
+app.get('/api/graph', async (req, res) => {
+  const { domain } = req.query;
+  const session = driver.session();
+  
+  try {
+    const queryDirect = `
+      MATCH (p:Person)-[w:EXPERT_IN_DIRECT]->(d:Domain{name: $domain})
+      RETURN p, w, d;
+    `;
+
+    const queryIndirect = `
+      MATCH (p:Person)-[w:EXPERT_IN_INDIRECT]->(d:Domain{name: $domain})
+      RETURN p, w, d;
+    `;
+
+    const resultDirect = await session.run(queryDirect, { domain });
+    const resultIndirect = await session.run(queryIndirect, { domain });
+
+    const nodes = {};
+    const edges = [];
+    
+    resultDirect.records.forEach(record => {
+      const p = record.get('p');
+      const d = record.get('d');
+      const w = record.get('w');
+
+      if (p && p.properties.name && d && d.properties.name && w) {
+        const personNodeId = p.identity.toString();
+        if (!nodes[personNodeId]) {
+          nodes[personNodeId] = { id: personNodeId, label: p.properties.name, type: 'Person', properties: p.properties };
+        }
+        
+        const domainNodeId = d.identity.toString();
+        if (!nodes[domainNodeId]) {
+          nodes[domainNodeId] = { id: domainNodeId, label: d.properties.name, type: 'Domain', properties: d.properties };
+        }
+    
+        if (w && nodes[w.start.toString()] && nodes[w.end.toString()]) {
+          edges.push({ id: `${w.start.toString()}-${w.end.toString()}`, source: w.start.toString(), target: w.end.toString(), label: w.type });
+        }
+      }
+    });
+
+    resultIndirect.records.forEach(record => {
+      const p = record.get('p');
+      const d = record.get('d');
+      const w = record.get('w');
+
+      if (p && p.properties.name && d && d.properties.name && w) {
+        const personNodeId = p.identity.toString();
+        if (!nodes[personNodeId]) {
+          nodes[personNodeId] = { id: personNodeId, label: p.properties.name, type: 'Person', properties: p.properties };
+        }
+        
+        const domainNodeId = d.identity.toString();
+        if (!nodes[domainNodeId]) {
+          nodes[domainNodeId] = { id: domainNodeId, label: d.properties.name, type: 'Domain', properties: d.properties };
+        }
+    
+        if (w && nodes[w.start.toString()] && nodes[w.end.toString()]) {
+          edges.push({ id: `${w.start.toString()}-${w.end.toString()}`, source: w.start.toString(), target: w.end.toString(), label: w.type });
+        }
+      }
+    });
+
+    // Convert nodes object to array
+    const nodesArray = Object.values(nodes);
+
+    res.json({ nodes: nodesArray, edges });
+  } catch (error) {
+    console.error('Error fetching data from Neo4j:', error);
+    res.status(500).json({ error: 'Failed to fetch data from Neo4j' });
+  } finally {
+    await session.close();
+  }
+});
+
 app.post('/api/query', async (req, res) => {
   let { domain, department } = req.body;
   if (!domain || !department) {
@@ -43,23 +120,38 @@ app.post('/api/query', async (req, res) => {
   const session = driver.session({ database: 'neo4j' });
 
   try {
-    const query = `
+    const directQuery = `
       MATCH (p:Person { Department: $department })
       WHERE p.domain IS NOT NULL
         AND p.name IS NOT NULL 
         AND ANY(domain IN p.domain WHERE trim(domain) = $domain)
-      RETURN p.name AS name, p.domain AS domains, toInteger(p.expertid) as expertId;
+      RETURN p.name AS name, p.domain AS domains, toInteger(p.expertid) AS expertId;
     `;
-    const result = await session.run(query, { domain, department });
+    
+    const indirectQuery = `
+      MATCH (p:Person { Department: $department })-[:EXPERT_IN_INDIRECT]->(:Domain { name: $domain })
+      WHERE p.domain IS NOT NULL
+        AND p.name IS NOT NULL
+      RETURN p.name AS name, p.domain AS domains, toInteger(p.expertid) AS expertId;
+    `;
 
-    const records = result.records.map(record => ({
+    const directResult = await session.run(directQuery, { domain, department });
+    const indirectResult = await session.run(indirectQuery, { domain, department });
+
+    const directRecords = directResult.records.map(record => ({
       name: record.get('name'),
-      expertId: record.get('expertId') ? record.get('expertId').toNumber() : null // Ensure expertId is parsed as integer
+      expertId: record.get('expertId') ? record.get('expertId').toNumber() : null
     }));
 
-    const count = records.length; // Count number of records returned
+    const indirectRecords = indirectResult.records.map(record => ({
+      name: record.get('name'),
+      expertId: record.get('expertId') ? record.get('expertId').toNumber() : null
+    }));
 
-    res.json({ records, count }); // Send records and count to frontend
+    const directCount = directRecords.length;
+    const indirectCount = indirectRecords.length;
+
+    res.json({ directRecords, indirectRecords, directCount, indirectCount });
   } catch (err) {
     console.error('Query error:', err);
     res.status(500).send('Query error');
@@ -68,99 +160,6 @@ app.post('/api/query', async (req, res) => {
   }
 });
 
-app.get('/api/graph', async (req, res) => {
-  const { domain } = req.query; // Extract domain from query parameters
-  const session = driver.session();
-  
-  try {
-    let query = `
-      MATCH (p:Person)-[w:EXPERT_IN]->(d:Domain)
-      WHERE p.name IS NOT NULL AND p.name <> ''
-      RETURN p, w, d;
-    `;
-
-    if (domain) {
-      query = `
-        MATCH (p:Person)-[w:EXPERT_IN]->(d:Domain{name : $domain})
-        WHERE p.name IS NOT NULL AND p.name <> ''
-        RETURN p, w, d;
-      `;
-    }
-
-    const result = await session.run(query, { domain });
-    const nodes = {};
-    const edges = [];
-    let count = 0; // Initialize count variable
-
-    result.records.forEach(record => {
-      const p = record.get('p');
-      const d = record.get('d');
-      const w = record.get('w');
-
-      // Check if all three properties are present
-      if (p && p.properties.name && d && d.properties.name && w) {
-        // Add person node if it has a valid label
-        const personNodeId = p.identity.toString();
-        if (!nodes[personNodeId]) {
-          nodes[personNodeId] = { id: personNodeId, label: p.properties.name, type: 'Person', properties: p.properties };
-        }
-        
-        // Add domain node if it has a valid label
-        const domainNodeId = d.identity.toString();
-        if (!nodes[domainNodeId]) {
-          nodes[domainNodeId] = { id: domainNodeId, label: d.properties.name, type: 'Domain', properties: d.properties };
-        }
-    
-        // Add the edge only if both source and target nodes exist
-        if (nodes[w.start.toString()] && nodes[w.end.toString()]) {
-          const edgeId = `${w.start.toString()}-${w.end.toString()}`;
-          if (!edges.find(edge => edge.id === edgeId)) {
-            edges.push({ id: edgeId, source: w.start.toString(), target: w.end.toString(), label: w.type });
-          }
-        }
-      }
-    });
-
-    const nodesArray = Object.values(nodes).filter(node => node.label.trim() !== '');
-    
-    res.json({ nodes: nodesArray, edges, count }); // Return count along with nodes and edges
-  } catch (error) {
-    console.error('Error fetching data from Neo4j:', error);
-    res.status(500).json({ error: 'Failed to fetch data from Neo4j' });
-  } finally {
-    await session.close();
-  }
-});
-
-app.get('/api/domain-count', async (req, res) => {
-  const { domain } = req.query;
-
-  if (!domain) {
-    res.status(400).send('Domain parameter is required');
-    return;
-  }
-
-  const session = driver.session();
-
-  try {
-    const query = `
-      MATCH (p:Person)-[w:EXPERT_IN]->(d:Domain{name : $domain})
-      WHERE p.name IS NOT NULL AND p.name <> ''
-      RETURN count(p) as count;
-    `;
-
-    const result = await session.run(query, { domain });
-
-    const count = result.records[0].get('count').toNumber();
-
-    res.json({ count });
-  } catch (error) {
-    console.error('Error fetching count from Neo4j:', error);
-    res.status(500).json({ error: 'Failed to fetch count from Neo4j' });
-  } finally {
-    await session.close();
-  }
-});
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
