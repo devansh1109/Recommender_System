@@ -1,0 +1,41 @@
+.navbar-container {
+    width: 100%;
+}
+
+.navbar {
+    background-color: #0369a1; /* Equivalent to bg-sky-800 */
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.25rem; /* Equivalent to text-xl */
+}
+
+.logo-container {
+    background-color: white;
+    border: 2px solid #0369a1; /* Equivalent to border-sky-800 */
+    border-right: none;
+    border-radius: 0 9999px 9999px 0; /* Equivalent to rounded-r-full */
+    padding: 2.5rem; /* Equivalent to p-10 */
+}
+
+.logo-container img {
+    width: auto;
+    height: auto;
+}
+
+.nav-links {
+    display: flex;
+    gap: 1rem; /* Adjust gap between links as needed */
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: white;
+}
+
+.nav-links .login-link {
+    padding: 1rem; /* Equivalent to p-4 */
+}
