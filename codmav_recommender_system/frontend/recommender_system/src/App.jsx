@@ -1,7 +1,9 @@
+// App.jsx
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ChakraProvider, extendTheme } from '@chakra-ui/react';
+import Navbar from './Navbar'; // Import the Navbar component
 import LandingPage from './LandingPage';
 import ResultPage from './ResultPage';
 import ArticleCountChart from './ArticleCountChart';
@@ -9,7 +11,6 @@ import GraphComponent1 from './GraphComponent1';
 import CollaborationGraph from './CollaborationGraph';
 import SearchComponent from './SearchComponent';
 import SearchResultsPage from './SearchResultsPage';
-import KeywordSearch from './KeywordSearch';
 
 // Extend the theme to include custom colors, fonts, etc.
 const theme = extendTheme({
@@ -27,6 +28,8 @@ const App = () => {
   return (
     <ChakraProvider theme={theme}>
       <Router>
+        {/* Include the Navbar */}
+        <Navbar />
         {/* Main Content */}
         <div style={{ flex: 1, padding: '20px' }}>
           <Routes>
@@ -38,8 +41,6 @@ const App = () => {
             <Route path="/collaborations" element={<CollaborationGraph />} />
             <Route path="/searchComponent" element={<SearchComponent />} />
             <Route path="/search-results" element={<SearchResultsPage />} />
-            <Route path="/KeywordSearch" element={<KeywordSearch />} />
-
             {/* Define other routes as needed */}
           </Routes>
         </div>

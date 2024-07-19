@@ -163,74 +163,75 @@ app.post('/api/query', async (req, res) => {
 });
 
 // New endpoint: Fetch collaborations for the given person
+// New endpoint: Fetch collaborations for the given person
 app.get('/api/collaborations/:personName', async (req, res) => {
-    const personName = req.params.personName;
-    const session = driver.session();
-    try {
-        const result = await session.run(
-            `MATCH (p1:Person {name: $personName})-[r:COLLABORATION]-(p2:Person)
-            WHERE p2.name IS NOT NULL
-            RETURN p1, r, p2, r.count AS count, id(r) AS edgeId
-            ORDER BY r.count DESC
-            LIMIT 10
-            `,
-            { personName }
-        );
+  const personName = req.params.personName;
+  const session = driver.session();
+  try {
+      const result = await session.run(
+          `MATCH (p1:Person {name: $personName})-[r:COLLABORATION]-(p2:Person)
+          WHERE p2.name IS NOT NULL
+          RETURN p1, r, p2, r.count AS count, id(r) AS edgeId
+          ORDER BY r.count DESC
+          LIMIT 10
+          `,
+          { personName }
+      );
 
-        const nodes = [];
-        const edges = [];
-        const collaborationData = [];
+      const nodes = [];
+      const edges = [];
+      const collaborationData = [];
 
-        result.records.forEach(record => {
-            const person1 = record.get('p1');
-            const person2 = record.get('p2');
-            const relationship = record.get('r');
-            const count = record.get('count').toInt();
+      result.records.forEach(record => {
+          const person1 = record.get('p1');
+          const person2 = record.get('p2');
+          const relationship = record.get('r');
+          const count = record.get('count').toInt();
 
-            console.log(`Collaboration Count: ${count}`);
 
-            if (!nodes.some(node => node.id === person1.identity.toString())) {
-                nodes.push({
-                    id: person1.identity.toString(),
-                    label: person1.properties.name,
-                    type: 'Person'
-                });
-            }
+          if (!nodes.some(node => node.id === person1.identity.toString())) {
+              nodes.push({
+                  id: person1.identity.toString(),
+                  label: person1.properties.name,
+                  type: 'Person'
+              });
+          }
 
-            if (!nodes.some(node => node.id === person2.identity.toString())) {
-                nodes.push({
-                    id: person2.identity.toString(),
-                    label: person2.properties.name,
-                    type: 'Person'
-                });
-            }
+          if (!nodes.some(node => node.id === person2.identity.toString())) {
+              nodes.push({
+                  id: person2.identity.toString(),
+                  label: person2.properties.name,
+                  type: 'Person'
+              });
+          }
 
-            edges.push({
-                id: `collab_${person1.identity.toString()}_${person2.identity.toString()}`,
-                source: person1.identity.toString(),
-                target: person2.identity.toString(),
-                label: 'COLLABORATION',
-                collaborationId: relationship.identity.toString(),
-                titles: relationship.properties.titles || [],
-                count: count
-            });
+          edges.push({
+              id: `collab_${person1.identity.toString()}_${person2.identity.toString()}`,
+              source: person1.identity.toString(),
+              target: person2.identity.toString(),
+              label: 'COLLABORATION',
+              collaborationId: relationship.identity.toString(),
+              titles: relationship.properties.titles || [],
+              count: count
+          });
 
-            if (relationship.properties.titles) {
-                collaborationData.push({
-                    id: relationship.identity.toString(),
-                    titles: relationship.properties.titles.join(', ')
-                });
-            }
-        });
+          if (relationship.properties.titles) {
+              collaborationData.push({
+                  id: relationship.identity.toString(),
+                  titles: relationship.properties.titles.join(', ')
+              });
+          }
+      });
 
-        res.json({ nodes, edges, collaborationData });
-    } catch (error) {
-        console.error('Error fetching collaborations:', error);
-        res.status(500).send('Error fetching collaborations');
-    } finally {
-        await session.close();
-    }
+      res.json({ nodes, edges, collaborationData });
+  } catch (error) {
+      console.error('Error fetching collaborations:', error);
+      res.status(500).send('Error fetching collaborations');
+  } finally {
+      await session.close();
+  }
 });
+
 
 // New endpoint: Fetch titles associated with a specific collaboration
 app.get('/api/collaboration/:collaborationId/titles', async (req, res) => {

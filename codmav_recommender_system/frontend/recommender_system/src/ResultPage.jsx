@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom'; // Import useNavigate instead of useHistory
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Box,
   Text,
@@ -16,7 +16,7 @@ import GraphComponent from './GraphComponent';
 
 const ResultPage = () => {
   const location = useLocation();
-  const navigate = useNavigate(); // Use useNavigate for navigation
+  const navigate = useNavigate();
   const department = new URLSearchParams(location.search).get('department');
   const domain = new URLSearchParams(location.search).get('domain');
   const [directRecords, setDirectRecords] = useState([]);
@@ -56,6 +56,9 @@ const ResultPage = () => {
     }
   };
 
+  const handlePrev = () => {
+    navigate(-1);
+  };
   const handleSearchByDomain = () => {
     navigate(`/LandingPage?searchType=domain&department=${department}&domain=${domain}`);
   };
@@ -70,52 +73,33 @@ const ResultPage = () => {
 
   return (
     <ChakraProvider theme={extendTheme({})}>
-      <Box display="flex" height="100vh" width="100vw" padding="20px">
-        {/* Sidebar */}
-        <Box
-          position="absolute"
-          top="0"
-          left="0"
-          width="100%"
-          height="100%"
-          
-        ></Box>
-        <Flex
+      <Box display="flex" flexDirection="column" height="100vh" width="100vw" padding="20px">
+        {/* Prev Button */}
+        <Button
           position="absolute"
           top="20px"
           left="20px"
-          direction="column"
-          alignItems="center"
-          justifyContent="center"
-          background="rgba(255, 255, 255, 0.5)"
-          borderRadius="20px"
-          padding="20px"
-          height="calc(100vh - 40px)"
-          width="300px"
-          zIndex="1"
+          backgroundColor="grey"
+          marginTop="137px"
+          marginRight="300px"
+          onClick={handlePrev}
         >
-          <Button colorScheme="blue" variant="outline" mb="10px" onClick={handleSearchByDomain}>
-            Search By Domain
-          </Button>
-          <Button colorScheme="blue" variant="outline" mb="10px" onClick={handleSearchByKeyword}>
-            Search By Keyword
-          </Button>
-          <Button colorScheme="blue" variant="outline" onClick={handleGraphVisualisation}>
-            Existing Collaboration & Trends
-          </Button>
-        </Flex>
-
+          Prev
+        </Button>
+      <Box display="flex" height="100vh" width="100vw" padding="20px">
         {/* Main Content */}
-        <Box ml="320px" width="calc(100% - 320px)">
-          <Box width="100%" border="1px solid #ccc" marginBottom="20px">
-            <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
-              FACULTY DOMAIN MAPPING
-            </Text>
-            <GraphComponent domain={domain} />
-          </Box>
-
-          <Flex justifyContent="space-between" marginBottom="20px">
-            <Box width="48%" border="1px solid #ccc">
+        <Flex width="100%" height="100%" direction="row">
+          <Box width="30%" height="100%" display="flex" flexDirection="column" padding="20px">
+            <Box
+              width="100%"
+              height="50%"
+              border="1px solid #ccc"
+              mb="20px"
+              overflow="hidden"
+              display="flex"
+              flexDirection="column"
+              boxSizing="border-box"
+            >
               <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
                 FACULTY MEMBER EXPERT IN THE DOMAIN:
               </Text>
@@ -123,11 +107,11 @@ const ResultPage = () => {
                 Number of Faculty Members: {directCount}
               </Text>
               <Divider mb="10px" />
-              <Box maxHeight="70vh" overflowY="auto">
-                <List spacing={3} paddingLeft="20px">
+              <Box maxHeight="calc(50vh - 80px)" overflowY="auto" padding="10px">
+                <List spacing={3}>
                   {directRecords.length > 0 ? (
                     directRecords.map((record, index) => (
-                      <ListItem key={index}>
+                      <ListItem key={index} overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
                         <Text>
                           <strong>Name:</strong>{" "}
                           <Link
@@ -152,7 +136,15 @@ const ResultPage = () => {
               </Box>
             </Box>
 
-            <Box width="48%" border="1px solid #ccc">
+            <Box
+              width="100%"
+              height="50%"
+              border="1px solid #ccc"
+              overflow="hidden"
+              display="flex"
+              flexDirection="column"
+              boxSizing="border-box"
+            >
               <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
                 SIMILAR FACULTY MEMBERS:
               </Text>
@@ -160,11 +152,11 @@ const ResultPage = () => {
                 Number of Faculty Members: {indirectCount}
               </Text>
               <Divider mb="10px" />
-              <Box maxHeight="70vh" overflowY="auto">
-                <List spacing={3} paddingLeft="20px">
+              <Box maxHeight="calc(50vh - 80px)" overflowY="auto" padding="10px">
+                <List spacing={3}>
                   {indirectRecords.length > 0 ? (
                     indirectRecords.map((record, index) => (
-                      <ListItem key={index}>
+                      <ListItem key={index} overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
                         <Text>
                           <strong>Name:</strong>{" "}
                           <Link
@@ -188,8 +180,16 @@ const ResultPage = () => {
                 </List>
               </Box>
             </Box>
-          </Flex>
-        </Box>
+          </Box>
+
+          <Box width="70%" height="100%" padding="20px">
+            <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
+              FACULTY DOMAIN MAPPING
+            </Text>
+            <GraphComponent domain={domain} />
+          </Box>
+        </Flex>
+      </Box>
       </Box>
     </ChakraProvider>
   );
