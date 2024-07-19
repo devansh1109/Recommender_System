@@ -9,6 +9,7 @@ import GraphComponent1 from './GraphComponent1';
 import CollaborationGraph from './CollaborationGraph';
 import SearchComponent from './SearchComponent';
 import SearchResultsPage from './SearchResultsPage';
+import KeywordSearch from './KeywordSearch';
 
 // Extend the theme to include custom colors, fonts, etc.
 const theme = extendTheme({
@@ -29,6 +30,7 @@ const App = () => {
         {/* Main Content */}
         <div style={{ flex: 1, padding: '20px' }}>
           <Routes>
+            <Route path="/" element={<LandingPage />} />
             <Route path="/LandingPage" element={<LandingPage />} />
             <Route path="/results" element={<ResultPage />} />
             <Route path="/chart" element={<ArticleCountChart />} />
@@ -36,6 +38,8 @@ const App = () => {
             <Route path="/collaborations" element={<CollaborationGraph />} />
             <Route path="/searchComponent" element={<SearchComponent />} />
             <Route path="/search-results" element={<SearchResultsPage />} />
+            <Route path="/KeywordSearch" element={<KeywordSearch />} />
+
             {/* Define other routes as needed */}
           </Routes>
         </div>

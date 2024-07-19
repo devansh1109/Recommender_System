@@ -23,14 +23,14 @@ const theme = extendTheme({
     },
     placeholderGray: '#A0AEC0',
     buttonLight: '#CBD5E0',
-    brightWhite: '#FFFFFF', // Bright white color
+    brightWhite: '#FFFFFF',
   },
   components: {
     Select: {
       baseStyle: {
         field: {
           _placeholder: { color: 'white' },
-          color: 'white', // Set dropdown text color to white
+          color: 'white',
           bg: 'white',
         },
       },
@@ -68,23 +68,7 @@ const LandingPage = () => {
       'Big Data and Data Analytics',
       'Data Mining',
     ],
-    'Department of Electronics and Communication Engineering': [],
-    'Department of Mechanical Engineering': [],
-    'Department of Electrical and Electronics Engineering': [],
-    'Department of Biotechnology': [],
-    'Department of Civil Engineering': [],
-    'Department of Science and Humanities': [],
-    'Faculty of Commerce and Management': [],
-    'Faculty of Pharmaceutical Sciences': [],
-    'Department of MCA': [],
-    'Department of MBA': [],
-    'Faculty of Law': [],
-    'Department of Architecture': [],
-    'Department of Neuroscience': [],
-    'Department of Psychology': [],
-    'Department of Human Genetics': [],
-    'Department of Orthopaedics': [],
-    Library: [],
+    // Add domains for other departments here
   };
 
   const departments = Object.keys(domains);
@@ -119,10 +103,10 @@ const LandingPage = () => {
         alert('Please select both department and domain.');
       }
     } else if (showSearch) {
-      if (keyword && selectedDepartment) {
-        navigate(`/results?department=${encodeURIComponent(selectedDepartment)}&keyword=${encodeURIComponent(keyword)}`);
+      if (keyword) {
+        navigate(`/KeywordSearch?keyword=${encodeURIComponent(keyword)}`);
       } else {
-        alert('Please enter a keyword and select a department.');
+        alert('Please enter a keyword.');
       }
     }
   };
@@ -196,7 +180,7 @@ const LandingPage = () => {
           left="0"
           width="100%"
           height="100%"
-          backgroundColor="rgba(0, 0, 0, 0.5)" // Adjust the opacity as needed
+          backgroundColor="rgba(0, 0, 0, 0.5)"
           zIndex="0"
         ></Box>
 
@@ -211,7 +195,7 @@ const LandingPage = () => {
           borderRadius="20px"
           padding="20px"
           height="calc(100vh - 40px)"
-          width="300px" // Adjust the width as needed
+          width="300px"
           zIndex="1"
         >
           <h3>Search collaborations</h3>
@@ -239,21 +223,23 @@ const LandingPage = () => {
         {(showDropdowns || showSearch || showVisualizations) && (
           <Box mb="40px" zIndex="1">
             <Flex direction="column" alignItems="center">
-              <Box mb="20px">
-                <Select
-                  value={selectedDepartment}
-                  onChange={handleDepartmentChange}
-                  mr="10px"
-                  placeholder="Select Department"
-                  sx={{ color: 'white' }} // Set dropdown text color to white
-                >
-                  {departments.map((dept, index) => (
-                    <option key={index} value={dept}>
-                      {dept}
-                    </option>
-                  ))}
-                </Select>
-              </Box>
+              {showDropdowns && (
+                <Box mb="20px">
+                  <Select
+                    value={selectedDepartment}
+                    onChange={handleDepartmentChange}
+                    mr="10px"
+                    placeholder="Select Department"
+                    sx={{ color: 'white' }}
+                  >
+                    {departments.map((dept, index) => (
+                      <option key={index} value={dept}>
+                        {dept}
+                      </option>
+                    ))}
+                  </Select>
+                </Box>
+              )}
               {showDropdowns && (
                 <Box>
                   <Select
@@ -261,7 +247,7 @@ const LandingPage = () => {
                     onChange={handleDomainChange}
                     disabled={!domains[selectedDepartment].length}
                     placeholder="Select Domain"
-                    sx={{ color: 'white' }} // Set dropdown text color to white
+                    sx={{ color: 'white' }}
                   >
                     {domains[selectedDepartment].length > 0 ? (
                       domains[selectedDepartment].map((domain, index) => (
@@ -277,19 +263,19 @@ const LandingPage = () => {
               )}
               {showSearch && (
                 <Box>
-                  <Input
-                    type="text"
-                    placeholder="Enter Keywords"
-                    value={keyword}
-                    onChange={handleKeywordChange}
-                    sx={{ '::placeholder': { color: 'white' } }}
-                  />
-                </Box>
-              )}
-              {(showDropdowns || showSearch) && (
-                <Button onClick={handleNextClick} mt="10px">
-                  Next
-                </Button>
+                <Input
+                  type="text"
+                  placeholder="Enter Keywords"
+                  value={keyword}
+                  onChange={handleKeywordChange}
+                  sx={{ '::placeholder': { color: 'white' } }}
+                />
+              </Box>
+            )}
+            {(showDropdowns || showSearch) && (
+              <Button onClick={handleNextClick} mt="10px">
+                Next
+              </Button>
               )}
             </Flex>
           </Box>
