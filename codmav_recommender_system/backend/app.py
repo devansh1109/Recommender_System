@@ -20,11 +20,17 @@ sentence_model = SentenceTransformer('all-mpnet-base-v2')
 nlp = spacy.load("en_core_web_sm")
 
 # Neo4j Aura connection using py2neo
-AURA_URI = "neo4j+s://xxxxxxxx.databases.neo4j.io"
+AURA_URI = "neo4j+s://4317f220.databases.neo4j.io"
 AURA_USERNAME = "neo4j"
-AURA_PASSWORD = "your-password"
+AURA_PASSWORD = "ieizSLiVB2yoMwHVIPpzzLhRK6YTPPzg92Bl6sPHYY0"
 
 graph = Graph(AURA_URI, auth=(AURA_USERNAME, AURA_PASSWORD))
+
+# Initialize global variables for TF-IDF and BM25
+tfidf = None
+tfidf_matrix = None
+bm25 = None
+corpus = None
 
 # Load existing embeddings and metadata
 def load_embeddings_and_metadata(file_path):
@@ -34,6 +40,11 @@ def load_embeddings_and_metadata(file_path):
     else:
         embeddings, metadata = [], []
     return embeddings, metadata
+
+# Save embeddings and metadata
+def save_embeddings_and_metadata(embeddings, metadata, file_path):
+    with open(file_path, 'wb') as f:
+        pickle.dump((embeddings, metadata), f)
 
 embeddings, metadata = load_embeddings_and_metadata('embeddings_metadata.pkl')
 
@@ -49,24 +60,69 @@ def preprocess_text(text):
     doc = nlp(text.lower())
     return ' '.join([token.lemma_ for token in doc if not token.is_stop and token.is_alpha])
 
-# Create TF-IDF and BM25 indices
-tfidf = TfidfVectorizer()
-tfidf_matrix = tfidf.fit_transform([
-    (m['keywords'] + " ") * 3 +  # Increase weight for keywords
-    (m['title'] + " ") * 4 +     # Add title with high weight
-    m['abstract']                # Keep abstract with lower weight
-    for m in metadata
-])
+# Function to check and update database
+def check_and_update_database():
+    global tfidf, tfidf_matrix, bm25, corpus
+    
+    query = """
+    MATCH (p:Person)-[:WRITES]->(t:Title)-[:HAS_KEYWORD]->(k:Keyword)
+    RETURN p.name AS personName,
+           p.expertid as expertid,
+           t.title AS title, 
+           t.abstract AS abstract, 
+           t.Year AS year, 
+           collect(k.keyw) AS keywords
+    """
+    results = graph.run(query).data()
+    
+    new_entries = []
+    for result in results:
+        if result not in metadata:
+            new_entries.append(result)
+            metadata.append(result)
+    
+    if new_entries:
+        print(f"Adding {len(new_entries)} new entries to the search index.")
+        for entry in new_entries:
+            text_to_embed = f"{entry['title']} {entry['abstract']} {' '.join(entry['keywords'])}"
+            embedding = sentence_model.encode([text_to_embed])[0]
+            embeddings.append(embedding)
+        
+        # Save updated embeddings and metadata
+        save_embeddings_and_metadata(embeddings, metadata, 'embeddings_metadata.pkl')
+    
+    # Always update search indices, even if no new entries were added
+    update_search_indices()
 
-corpus = [doc.split() for doc in ([
-    (m['keywords'] + " ") * 3 +
-    (m['title'] + " ") * 4 +
-    m['abstract']
-    for m in metadata
-])]
-bm25 = BM25Okapi(corpus)
+# Update TF-IDF and BM25 indices
+def update_search_indices():
+    global tfidf, tfidf_matrix, bm25, corpus
+    
+    # Create TF-IDF index
+    tfidf = TfidfVectorizer()
+    tfidf_matrix = tfidf.fit_transform([
+        " ".join(m['keywords']) + " " * 3 +  # Join keywords into a string
+        m['title'] + " " +
+        m['abstract']  # Keep abstract with lower weight
+        for m in metadata
+    ])
+
+    # Create BM25 index
+    corpus = [doc.split() for doc in [
+        (" ".join(m['keywords']) + " ") * 3 +  # Join keywords into a string
+        (m['title'] + " ") * 4 +
+        m['abstract']
+        for m in metadata
+    ]]
+    bm25 = BM25Okapi(corpus)
 
 def comprehensive_search(query, page=1, limit=20):
+    global tfidf, tfidf_matrix, bm25, corpus
+    
+    if tfidf is None or tfidf_matrix is None or bm25 is None or corpus is None:
+        print("Search indices are not initialized. Updating now...")
+        update_search_indices()
+    
     preprocessed_query = preprocess_text(query)
     
     # TF-IDF search
@@ -84,7 +140,7 @@ def comprehensive_search(query, page=1, limit=20):
     combined_scores = (
         0.35 * tfidf_similarities +  # Increase weight for TF-IDF
         0.35 * bm25_scores +         # Increase weight for BM25
-        0.3 * st_similarities       # Decrease weight for sentence embeddings
+        0.3 * st_similarities        # Decrease weight for sentence embeddings
     )
 
     # Normalize scores
@@ -179,4 +235,5 @@ def similar():
         return jsonify({'error': 'Paper ID not found'}), 404
 
 if __name__ == '__main__':
+    check_and_update_database()
     app.run(debug=True)
