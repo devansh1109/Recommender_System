@@ -47,6 +47,7 @@ const SearchResult = ({ result, excludeIds }) => {
               overflow="hidden" 
               textOverflow="ellipsis"
               maxWidth="150px"
+              color="white"
             >
               {result.author}
             </Text>
@@ -146,6 +147,7 @@ const KeywordSearch = () => {
             placeholder="Enter your search query"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            
           />
           <Button colorScheme="blue" onClick={handleSearch} isLoading={loading && page === 1}>
             Search

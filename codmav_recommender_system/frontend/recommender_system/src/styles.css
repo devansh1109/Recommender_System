@@ -1,0 +1,6 @@
+/* styles.css */
+.custom-placeholder-select::placeholder {
+    background-color: white;
+    color: white;
+  }
+  

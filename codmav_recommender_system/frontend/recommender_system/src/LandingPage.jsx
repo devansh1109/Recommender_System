@@ -11,6 +11,7 @@ import {
 } from '@chakra-ui/react';
 
 import globeImage from './globe.jpeg';
+import './styles.css';
 
 const LandingPage = () => {
   const domains = {
@@ -217,8 +218,9 @@ const LandingPage = () => {
                       value={selectedDepartment}
                       onChange={handleDepartmentChange}
                       placeholder="Select Department"
-                      variant="outline"
+                      variant="filled"
                       className="custom-select"
+                      
                     >
                       {departments.map((dept, index) => (
                         <option key={index} value={dept}>
@@ -233,7 +235,7 @@ const LandingPage = () => {
                         value={selectedDomain}
                         onChange={handleDomainChange}
                         placeholder="Select Domain"
-                        variant="outline"
+                        variant="filled"
                         className="custom-select"
                         isDisabled={domains[selectedDepartment].length === 0}
                       >
@@ -258,6 +260,7 @@ const LandingPage = () => {
                     placeholder="Enter Keywords"
                     value={keyword}
                     onChange={handleKeywordChange}
+                    variant="filled"
                   />
                 </Box>
               )}
@@ -272,8 +275,9 @@ const LandingPage = () => {
                     value={visualizationDepartment}
                     onChange={handleVisualizationDepartmentChange}
                     placeholder="Select Department"
-                    variant="outline"
+                    variant="filled"
                     className="custom-select"
+                    color="black"
                   >
                     {departments.map((dept, index) => (
                       <option key={index} value={dept}>
@@ -287,36 +291,17 @@ const LandingPage = () => {
           </Box>
         )}
 
-        {showVisualizations && showGraphButtons && (
-          <Box width="100%" zIndex="1">
-            <Flex flexDirection="column" alignItems="center">
-              <Flex direction="column" alignItems="center">
-                <Button
-                  onClick={handleNavigateToDomainVisualization}
-                  colorScheme="blue"
-                  variant="outline"
-                  mb="10px"
-                >
-                  Domain Visualization
-                </Button>
-                <Button
-                  onClick={handleNavigateToCollaborations}
-                  colorScheme="blue"
-                  variant="outline"
-                  mb="10px"
-                >
-                  Collaborations
-                </Button>
-                <Button
-                  onClick={handleNavigateToHistoryOfArticles}
-                  colorScheme="blue"
-                  variant="outline"
-                  mb="10px"
-                >
-                  History of Articles
-                </Button>
-              </Flex>
-            </Flex>
+        {showGraphButtons && (
+          <Box mt="10px" zIndex="1">
+            <Button onClick={handleNavigateToDomainVisualization} colorScheme="blue" variant="outline" mb="10px">
+              Domain Visualization
+            </Button>
+            <Button onClick={handleNavigateToCollaborations} colorScheme="blue" variant="outline" mb="10px">
+              Existing Collaborations
+            </Button>
+            <Button onClick={handleNavigateToHistoryOfArticles} colorScheme="blue" variant="outline">
+              History of Articles
+            </Button>
           </Box>
         )}
       </Box>

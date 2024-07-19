@@ -1,80 +1,57 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Text,
-  Link,
-  Divider,
-  List,
-  ListItem,
-  Flex,
-  Button,
-  ChakraProvider,
-  extendTheme
-} from '@chakra-ui/react';
+import { Box, Text, Link, Divider, List, ListItem, Flex, Button, ChakraProvider, extendTheme } from '@chakra-ui/react';
 import GraphComponent from './GraphComponent';
 
 const ResultPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const department = new URLSearchParams(location.search).get('department');
-  const domain = new URLSearchParams(location.search).get('domain');
+  const params = new URLSearchParams(location.search);
+  const departmentParam = params.get('department');
+  const domainParam = params.get('domain');
+
   const [directRecords, setDirectRecords] = useState([]);
   const [indirectRecords, setIndirectRecords] = useState([]);
   const [directCount, setDirectCount] = useState(0);
   const [indirectCount, setIndirectCount] = useState(0);
   const [error, setError] = useState(null);
 
+  // Use parameters from URL directly
+  const selectedDepartment = departmentParam || '';
+  const selectedDomain = domainParam || '';
+
   useEffect(() => {
-    fetchData();
-  }, [domain, department]);
+    // Fetch data when department or domain changes
+    const fetchData = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/api/query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domain: selectedDomain, department: selectedDepartment }),
+        });
 
-  const fetchData = async () => {
-    try {
-      const response = await fetch('http://localhost:8080/api/query', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ domain, department }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const jsonData = await response.json();
+        setDirectRecords(jsonData.directRecords);
+        setIndirectRecords(jsonData.indirectRecords);
+        setDirectCount(jsonData.directRecords.length);
+        setIndirectCount(jsonData.indirectRecords.length);
+        setError(null);
+      } catch (error) {
+        setError(error.message);
       }
+    };
 
-      const jsonData = await response.json();
-      const { directRecords, indirectRecords } = jsonData;
-
-      setDirectRecords(directRecords);
-      setIndirectRecords(indirectRecords);
-      setDirectCount(directRecords.length);
-      setIndirectCount(indirectRecords.length);
-      setError(null);
-    } catch (error) {
-      setError(error.message);
-    }
-  };
+    fetchData();
+  }, [selectedDomain, selectedDepartment]);
 
   const handlePrev = () => {
     navigate(-1);
   };
-  const handleSearchByDomain = () => {
-    navigate(`/LandingPage?searchType=domain&department=${department}&domain=${domain}`);
-  };
-
-  const handleSearchByKeyword = () => {
-    navigate(`/LandingPage?searchType=keyword&department=${department}&domain=${domain}`);
-  };
-
-  const handleGraphVisualisation = () => {
-    navigate(`/LandingPage?searchType=graph&department=${department}&domain=${domain}`);
-  };
 
   return (
     <ChakraProvider theme={extendTheme({})}>
-      <Box display="flex" flexDirection="column" height="100vh" width="100vw" padding="20px">
-        {/* Prev Button */}
+      <Box p="20px">
         <Button
           position="absolute"
           top="20px"
@@ -86,8 +63,13 @@ const ResultPage = () => {
         >
           Prev
         </Button>
-      <Box display="flex" height="100vh" width="100vw" padding="20px">
-        {/* Main Content */}
+
+        <Flex direction="column" alignItems="center" mb="20px">
+          <Text fontSize="2xl" fontWeight="bold" mb="10px">
+            Faculty Members Working in {selectedDepartment} Under {selectedDomain}
+          </Text>
+        </Flex>
+
         <Flex width="100%" height="100%" direction="row">
           <Box width="30%" height="100%" display="flex" flexDirection="column" padding="20px">
             <Box
@@ -186,10 +168,9 @@ const ResultPage = () => {
             <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
               FACULTY DOMAIN MAPPING
             </Text>
-            <GraphComponent domain={domain} />
+            <GraphComponent domain={selectedDomain} />
           </Box>
         </Flex>
-      </Box>
       </Box>
     </ChakraProvider>
   );

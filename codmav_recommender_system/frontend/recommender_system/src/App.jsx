@@ -1,4 +1,3 @@
-// App.jsx
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -11,6 +10,8 @@ import GraphComponent1 from './GraphComponent1';
 import CollaborationGraph from './CollaborationGraph';
 import SearchComponent from './SearchComponent';
 import SearchResultsPage from './SearchResultsPage';
+import KeywordSearch from './KeywordSearch';
+
 
 // Extend the theme to include custom colors, fonts, etc.
 const theme = extendTheme({
@@ -41,6 +42,7 @@ const App = () => {
             <Route path="/collaborations" element={<CollaborationGraph />} />
             <Route path="/searchComponent" element={<SearchComponent />} />
             <Route path="/search-results" element={<SearchResultsPage />} />
+            <Route path="/KeywordSearch" element={<KeywordSearch />} />
             {/* Define other routes as needed */}
           </Routes>
         </div>
