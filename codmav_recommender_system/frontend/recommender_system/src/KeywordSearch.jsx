@@ -1,7 +1,7 @@
-import React, { useState,useEffect } from 'react';
-import { ChakraProvider, Box, Input, Button, VStack, HStack, Text, Container, Collapse, IconButton, Spinner, Center, Alert, AlertIcon } from '@chakra-ui/react';
+import React, { useState, useEffect } from 'react';
+import { ChakraProvider, Box, Input, Button, VStack, HStack, Text, Container, Collapse, IconButton, Spinner, Center, Alert, AlertIcon, Tooltip } from '@chakra-ui/react';
 import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
-import { useLocation } from 'react-router-dom'; // Add this import
+import { useLocation } from 'react-router-dom';
 
 const SearchResult = ({ result, excludeIds }) => {
   const [showSimilar, setShowSimilar] = useState(false);
@@ -35,11 +35,22 @@ const SearchResult = ({ result, excludeIds }) => {
   return (
     <Box borderWidth="1px" borderRadius="lg" p="4" width="100%">
       <HStack justify="space-between" alignItems="start">
-        <Box>
+        <Box flex="1">
           <Text fontSize="xl" fontWeight="bold">{result.title}</Text>
         </Box>
-        <Box textAlign="right">
-          <Text fontSize="sm" fontWeight="medium">{result.author}</Text>
+        <Box textAlign="right" minWidth="150px">
+          <Tooltip label={result.author} placement="top-start">
+            <Text 
+              fontSize="sm" 
+              fontWeight="medium" 
+              whiteSpace="nowrap" 
+              overflow="hidden" 
+              textOverflow="ellipsis"
+              maxWidth="150px"
+            >
+              {result.author}
+            </Text>
+          </Tooltip>
           <Text fontSize="sm" color="gray.500">{result.year}</Text>
         </Box>
       </HStack>

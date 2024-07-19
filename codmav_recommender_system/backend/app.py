@@ -31,22 +31,29 @@ tfidf = None
 tfidf_matrix = None
 bm25 = None
 corpus = None
+embeddings = []
+metadata = []
 
 # Load existing embeddings and metadata
 def load_embeddings_and_metadata(file_path):
     if os.path.exists(file_path):
         with open(file_path, 'rb') as f:
-            embeddings, metadata = pickle.load(f)
+            loaded_data = pickle.load(f)
+            if isinstance(loaded_data, tuple) and len(loaded_data) == 2:
+                embeddings, metadata = loaded_data
+                print(f"Loaded {len(metadata)} entries from file.")
+                return embeddings, metadata
+            else:
+                print("Invalid data format in file. Starting fresh.")
     else:
-        embeddings, metadata = [], []
-    return embeddings, metadata
+        print("No existing file found. Starting fresh.")
+    return [], []
 
 # Save embeddings and metadata
 def save_embeddings_and_metadata(embeddings, metadata, file_path):
     with open(file_path, 'wb') as f:
         pickle.dump((embeddings, metadata), f)
-
-embeddings, metadata = load_embeddings_and_metadata('embeddings_metadata.pkl')
+    print(f"Saved {len(metadata)} entries to file.")
 
 # Initialize ChromaDB
 client = chromadb.Client()
@@ -60,14 +67,21 @@ def preprocess_text(text):
     doc = nlp(text.lower())
     return ' '.join([token.lemma_ for token in doc if not token.is_stop and token.is_alpha])
 
+def entry_exists(entry, metadata_list):
+    return any(
+        m.get('title') == entry.get('title') and
+        m.get('personName') == entry.get('personName') and
+        m.get('year') == entry.get('year')
+        for m in metadata_list
+    )
+
 # Function to check and update database
 def check_and_update_database():
-    global tfidf, tfidf_matrix, bm25, corpus
+    global tfidf, tfidf_matrix, bm25, corpus, metadata, embeddings
     
     query = """
     MATCH (p:Person)-[:WRITES]->(t:Title)-[:HAS_KEYWORD]->(k:Keyword)
     RETURN p.name AS personName,
-           p.expertid as expertid,
            t.title AS title, 
            t.abstract AS abstract, 
            t.Year AS year, 
@@ -75,9 +89,16 @@ def check_and_update_database():
     """
     results = graph.run(query).data()
     
+    print(f"Retrieved {len(results)} entries from the database.")
+    print(f"Current metadata has {len(metadata)} entries.")
+    
+    if results:
+        print("Structure of the first result:")
+        print(results[0])
+    
     new_entries = []
     for result in results:
-        if result not in metadata:
+        if not entry_exists(result, metadata):
             new_entries.append(result)
             metadata.append(result)
     
@@ -90,9 +111,13 @@ def check_and_update_database():
         
         # Save updated embeddings and metadata
         save_embeddings_and_metadata(embeddings, metadata, 'embeddings_metadata.pkl')
-    
-    # Always update search indices, even if no new entries were added
-    update_search_indices()
+        
+        # Update search indices only if there are new entries
+        update_search_indices()
+    else:
+        print("No new entries found. Search indices remain unchanged.")
+
+    print(f"Total entries in metadata: {len(metadata)}")
 
 # Update TF-IDF and BM25 indices
 def update_search_indices():
@@ -234,6 +259,12 @@ def similar():
     except IndexError:
         return jsonify({'error': 'Paper ID not found'}), 404
 
+@app.route('/api/update_database', methods=['POST'])
+def update_database():
+    check_and_update_database()
+    return jsonify({'message': 'Database check completed'}), 200
+
 if __name__ == '__main__':
+    embeddings, metadata = load_embeddings_and_metadata('embeddings_metadata.pkl')
     check_and_update_database()
     app.run(debug=True)

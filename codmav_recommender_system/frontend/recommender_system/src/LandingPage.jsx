@@ -2,54 +2,15 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ChakraProvider,
-  extendTheme,
   Box,
   Flex,
   Button,
   Select,
   Input,
   Text,
-  Image,
 } from '@chakra-ui/react';
-import logoImage from './logo.png';
-import globeImage from './globe.jpeg';
 
-const theme = extendTheme({
-  colors: {
-    brand: {
-      900: '#1a365d',
-      800: '#153e75',
-      700: '#2a69ac',
-    },
-    placeholderGray: '#A0AEC0',
-    buttonLight: '#CBD5E0',
-    brightWhite: '#FFFFFF',
-  },
-  components: {
-    Select: {
-      baseStyle: {
-        field: {
-          _placeholder: { color: 'white' },
-          color: 'white',
-          bg: 'white',
-        },
-      },
-    },
-    Input: {
-      baseStyle: {
-        field: {
-          _placeholder: { color: 'white' },
-          color: 'white',
-        },
-      },
-    },
-    FormLabel: {
-      baseStyle: {
-        color: 'white',
-      },
-    },
-  },
-});
+import globeImage from './globe.jpeg';
 
 const LandingPage = () => {
   const domains = {
@@ -68,17 +29,34 @@ const LandingPage = () => {
       'Big Data and Data Analytics',
       'Data Mining',
     ],
-    // Add domains for other departments here
+    'Department of Electronics and Communication Engineering': [],
+    'Department of Mechanical Engineering': [],
+    'Department of Electrical and Electronics Engineering': [],
+    'Department of Biotechnology': [],
+    'Department of Civil Engineering': [],
+    'Department of Science and Humanities': [],
+    'Faculty of Commerce and Management': [],
+    'Faculty of Pharmaceutical Sciences': [],
+    'Department of MCA': [],
+    'Department of MBA': [],
+    'Faculty of Law': [],
+    'Department of Architecture': [],
+    'Department of Neuroscience': [],
+    'Department of Psychology': [],
+    'Department of Human Genetics': [],
+    'Department of Orthopaedics': [],
+    'Library': [],
   };
 
   const departments = Object.keys(domains);
-  const [selectedDepartment, setSelectedDepartment] = useState(departments[0]);
+  const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedDomain, setSelectedDomain] = useState('');
   const [showDropdowns, setShowDropdowns] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showVisualizations, setShowVisualizations] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [showGraphButtons, setShowGraphButtons] = useState(false);
+  const [visualizationDepartment, setVisualizationDepartment] = useState('');
 
   const navigate = useNavigate();
 
@@ -97,10 +75,14 @@ const LandingPage = () => {
 
   const handleNextClick = () => {
     if (showDropdowns) {
-      if (selectedDomain && selectedDepartment) {
-        navigate(`/results?department=${encodeURIComponent(selectedDepartment)}&domain=${encodeURIComponent(selectedDomain)}`);
+      if (selectedDepartment) {
+        if (domains[selectedDepartment].length > 0 && !selectedDomain) {
+          alert('Please select a domain.');
+        } else {
+          navigate(`/results?department=${encodeURIComponent(selectedDepartment)}${selectedDomain ? `&domain=${encodeURIComponent(selectedDomain)}` : ''}`);
+        }
       } else {
-        alert('Please select both department and domain.');
+        alert('Please select a department.');
       }
     } else if (showSearch) {
       if (keyword) {
@@ -131,7 +113,7 @@ const LandingPage = () => {
   };
 
   const handleNavigateToGraphButtons = () => {
-    if (selectedDepartment) {
+    if (visualizationDepartment) {
       setShowGraphButtons(true);
     } else {
       alert('Please select a department.');
@@ -139,19 +121,24 @@ const LandingPage = () => {
   };
 
   const handleNavigateToDomainVisualization = () => {
-    navigate(`/DomainVisualization/${encodeURIComponent(selectedDepartment)}`);
+    navigate(`/DomainVisualization/${encodeURIComponent(visualizationDepartment)}`);
   };
 
   const handleNavigateToCollaborations = () => {
-    navigate(`/collaborations?department=${encodeURIComponent(selectedDepartment)}`);
+    navigate(`/collaborations?department=${encodeURIComponent(visualizationDepartment)}`);
   };
 
   const handleNavigateToHistoryOfArticles = () => {
-    navigate(`/chart?department=${encodeURIComponent(selectedDepartment)}`);
+    navigate(`/chart?department=${encodeURIComponent(visualizationDepartment)}`);
+  };
+
+  const handleVisualizationDepartmentChange = (event) => {
+    setVisualizationDepartment(event.target.value);
+    setShowGraphButtons(domains[event.target.value].length > 0);
   };
 
   return (
-    <ChakraProvider theme={theme}>
+    <ChakraProvider>
       <Box
         minHeight="100vh"
         width="100vw"
@@ -161,6 +148,7 @@ const LandingPage = () => {
         justifyContent="center"
         textAlign="center"
         position="relative"
+        overflow="hidden"
       >
         <Box
           position="absolute"
@@ -173,7 +161,7 @@ const LandingPage = () => {
           backgroundPosition="center"
           backgroundRepeat="no-repeat"
           zIndex="0"
-        ></Box>
+        />
         <Box
           position="absolute"
           top="0"
@@ -182,7 +170,7 @@ const LandingPage = () => {
           height="100%"
           backgroundColor="rgba(0, 0, 0, 0.5)"
           zIndex="0"
-        ></Box>
+        />
 
         <Flex
           position="absolute"
@@ -197,16 +185,15 @@ const LandingPage = () => {
           height="calc(100vh - 40px)"
           width="300px"
           zIndex="1"
+          overflowY="auto"
         >
-          <h3>Search collaborations</h3>
-          <Image src={logoImage} alt="Logo" boxSize="100px" mb="20px" />
-          <Button onClick={handleShowDropdowns} colorScheme="blue" variant="outline" mb="10px" bg="buttonLight">
+          <Button onClick={handleShowDropdowns} colorScheme="blue" variant="outline" mb="10px">
             Search By Domain
           </Button>
-          <Button onClick={handleShowSearch} colorScheme="blue" variant="outline" mb="10px" bg="buttonLight">
+          <Button onClick={handleShowSearch} colorScheme="blue" variant="outline" mb="10px">
             Search By Keyword
           </Button>
-          <Button onClick={handleShowVisualizations} colorScheme="blue" variant="outline" bg="buttonLight">
+          <Button onClick={handleShowVisualizations} colorScheme="blue" variant="outline">
             Existing Collaboration & Trends
           </Button>
         </Flex>
@@ -224,13 +211,69 @@ const LandingPage = () => {
           <Box mb="40px" zIndex="1">
             <Flex direction="column" alignItems="center">
               {showDropdowns && (
+                <>
+                  <Box mb="20px">
+                    <Select
+                      value={selectedDepartment}
+                      onChange={handleDepartmentChange}
+                      placeholder="Select Department"
+                      variant="outline"
+                      className="custom-select"
+                    >
+                      {departments.map((dept, index) => (
+                        <option key={index} value={dept}>
+                          {dept}
+                        </option>
+                      ))}
+                    </Select>
+                  </Box>
+                  {selectedDepartment && (
+                    <Box mb="20px">
+                      <Select
+                        value={selectedDomain}
+                        onChange={handleDomainChange}
+                        placeholder="Select Domain"
+                        variant="outline"
+                        className="custom-select"
+                        isDisabled={domains[selectedDepartment].length === 0}
+                      >
+                        {domains[selectedDepartment].length > 0 ? (
+                          domains[selectedDepartment].map((domain, index) => (
+                            <option key={index} value={domain.toLowerCase()}>
+                              {domain}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="">No domains available</option>
+                        )}
+                      </Select>
+                    </Box>
+                  )}
+                </>
+              )}
+              {showSearch && (
+                <Box mb="20px">
+                  <Input
+                    type="text"
+                    placeholder="Enter Keywords"
+                    value={keyword}
+                    onChange={handleKeywordChange}
+                  />
+                </Box>
+              )}
+              {(showDropdowns || showSearch) && (
+                <Button onClick={handleNextClick} mt="10px">
+                  Next
+                </Button>
+              )}
+              {showVisualizations && (
                 <Box mb="20px">
                   <Select
-                    value={selectedDepartment}
-                    onChange={handleDepartmentChange}
-                    mr="10px"
+                    value={visualizationDepartment}
+                    onChange={handleVisualizationDepartmentChange}
                     placeholder="Select Department"
-                    sx={{ color: 'white' }}
+                    variant="outline"
+                    className="custom-select"
                   >
                     {departments.map((dept, index) => (
                       <option key={index} value={dept}>
@@ -240,67 +283,39 @@ const LandingPage = () => {
                   </Select>
                 </Box>
               )}
-              {showDropdowns && (
-                <Box>
-                  <Select
-                    value={selectedDomain}
-                    onChange={handleDomainChange}
-                    disabled={!domains[selectedDepartment].length}
-                    placeholder="Select Domain"
-                    sx={{ color: 'white' }}
-                  >
-                    {domains[selectedDepartment].length > 0 ? (
-                      domains[selectedDepartment].map((domain, index) => (
-                        <option key={index} value={domain.toLowerCase()}>
-                          {domain}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="">No domains available</option>
-                    )}
-                  </Select>
-                </Box>
-              )}
-              {showSearch && (
-                <Box>
-                <Input
-                  type="text"
-                  placeholder="Enter Keywords"
-                  value={keyword}
-                  onChange={handleKeywordChange}
-                  sx={{ '::placeholder': { color: 'white' } }}
-                />
-              </Box>
-            )}
-            {(showDropdowns || showSearch) && (
-              <Button onClick={handleNextClick} mt="10px">
-                Next
-              </Button>
-              )}
             </Flex>
           </Box>
         )}
 
-        {showVisualizations && (
+        {showVisualizations && showGraphButtons && (
           <Box width="100%" zIndex="1">
             <Flex flexDirection="column" alignItems="center">
-              {showGraphButtons ? (
-                <Flex>
-                  <Button onClick={handleNavigateToDomainVisualization} colorScheme="blue" variant="outline" mb="10px" mr="10px" bg="buttonLight">
-                    Domain Visualization
-                  </Button>
-                  <Button onClick={handleNavigateToCollaborations} colorScheme="blue" variant="outline" mb="10px" mr="10px" bg="buttonLight">
-                    Collaborations
-                  </Button>
-                  <Button onClick={handleNavigateToHistoryOfArticles} colorScheme="blue" variant="outline" bg="buttonLight">
-                    History of Articles
-                  </Button>
-                </Flex>
-              ) : (
-                <Button onClick={handleNavigateToGraphButtons} colorScheme="blue" variant="outline" bg="buttonLight">
-                  Show Graph Buttons
+              <Flex direction="column" alignItems="center">
+                <Button
+                  onClick={handleNavigateToDomainVisualization}
+                  colorScheme="blue"
+                  variant="outline"
+                  mb="10px"
+                >
+                  Domain Visualization
                 </Button>
-              )}
+                <Button
+                  onClick={handleNavigateToCollaborations}
+                  colorScheme="blue"
+                  variant="outline"
+                  mb="10px"
+                >
+                  Collaborations
+                </Button>
+                <Button
+                  onClick={handleNavigateToHistoryOfArticles}
+                  colorScheme="blue"
+                  variant="outline"
+                  mb="10px"
+                >
+                  History of Articles
+                </Button>
+              </Flex>
             </Flex>
           </Box>
         )}
