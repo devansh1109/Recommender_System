@@ -150,6 +150,16 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
         }
     };
 
+    // Function to update node colors based on edge counts
+    const updateNodeColors = (cyInstance) => {
+        cyInstance.edges().forEach(edge => {
+            const targetNode = edge.target();
+            const count = edge.data('count');
+            const color = `rgba(${255 - count * 9}, ${255 - count*5}, 0, 1)`;
+            targetNode.style('background-color', color);
+        });
+    };
+
     // Render the Cytoscape instance
     const renderCytoscape = (elements) => {
         const cyInstance = cytoscape({
@@ -216,6 +226,9 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
         cyInstance.on('mouseover', 'edge', handleEdgeMouseover);
         cyInstance.on('mouseout', 'edge', handleEdgeMouseout);
 
+        // Update node colors based on edge counts
+        updateNodeColors(cyInstance);
+
         // Update the cy state
         setCy(cyInstance);
     };
@@ -234,32 +247,6 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
             width="100vw"
             backgroundColor="#f0f4f8"
         >
-            <Box
-                padding="20px"
-                backgroundColor="#fff"
-                borderBottom="1px solid #ddd"
-            >
-                <VStack spacing={4} align="stretch">
-                    <form onSubmit={handleSearch} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '10px' }}>
-                        <Input
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Enter person's name..."
-                        />
-                        <Select
-                            placeholder="Select a person"
-                            onChange={handleSelect}
-                            value={searchQuery}
-                        >
-                            {filteredNames.map((name) => (
-                                <option key={name} value={name}>
-                                    {name}
-                                </option>
-                            ))}
-                        </Select>
-                    </form>
-                </VStack>
-            </Box>
             <Box display="flex" flex="1" overflow="hidden">
                 <Box
                     id="cy"

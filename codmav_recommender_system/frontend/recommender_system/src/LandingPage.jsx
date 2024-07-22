@@ -188,6 +188,9 @@ const LandingPage = () => {
           zIndex="1"
           overflowY="auto"
         >
+          <Text fontSize="2xl" fontWeight="bold" mb="20px">
+            EXPLORE COLLABORATORS
+          </Text>
           <Button onClick={handleShowDropdowns} colorScheme="blue" variant="outline" mb="10px">
             Search By Domain
           </Button>
@@ -260,7 +263,6 @@ const LandingPage = () => {
                     value={keyword}
                     onChange={handleKeywordChange}
                     variant="filled"
-                    // _placeholder={{ color: 'white' }} // Change the placeholder color to white
                     color="white" // Change the input text color to white
                   />
                 </Box>
@@ -293,17 +295,17 @@ const LandingPage = () => {
         )}
 
         {showGraphButtons && (
-          <Box mt="10px" zIndex="1">
-            <Button onClick={handleNavigateToDomainVisualization} colorScheme="blue" variant="outline" mb="10px">
+          <Flex mt="10px" zIndex="1" justifyContent="center" gap="10px">
+            <Button onClick={handleNavigateToDomainVisualization} variant="filled" backgroundColor='white'>
               Domain Visualization
             </Button>
-            <Button onClick={handleNavigateToCollaborations} colorScheme="blue" variant="outline" mb="10px">
+            <Button onClick={handleNavigateToCollaborations} variant="filled" backgroundColor='white'>
               Existing Collaborations
             </Button>
-            <Button onClick={handleNavigateToHistoryOfArticles} colorScheme="blue" variant="outline">
-              History of Articles
+            <Button onClick={handleNavigateToHistoryOfArticles} variant="filled" backgroundColor='white'>
+              Domain Trend
             </Button>
-          </Box>
+          </Flex>
         )}
       </Box>
     </ChakraProvider>

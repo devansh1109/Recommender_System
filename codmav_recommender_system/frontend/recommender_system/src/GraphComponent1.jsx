@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import cytoscape from 'cytoscape';
 import coseBilkent from 'cytoscape-cose-bilkent';
 
 cytoscape.use(coseBilkent);
 
 const GraphComponent1 = ({ department }) => {
+    const navigate = useNavigate();
     const [elements, setElements] = useState([]);
     const [cy, setCy] = useState(null);
     const [titles, setTitles] = useState([]);
@@ -168,7 +170,26 @@ const GraphComponent1 = ({ department }) => {
                 borderRadius: '10px',
                 boxShadow: '0 4px 6px grey',
                 overflow: 'hidden',
+                position: 'relative'  // Added relative positioning for the button
             }}>
+                <button 
+                    onClick={() => navigate(-1)} 
+                    style={{
+                        position: 'absolute',
+                        top: '10px',
+                        left: '10px',
+                        padding: '10px 20px',
+                        fontSize: '16px',
+                        color: '#fff',
+                        backgroundColor: 'grey',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                    }}
+                >
+                    Prev
+                </button>
                 <h1 style={{
                     color: '#333',
                     fontSize: '2.5rem',
