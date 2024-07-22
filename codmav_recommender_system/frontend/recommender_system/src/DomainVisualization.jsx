@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Text, Button, Spinner } from '@chakra-ui/react';
+import { Box, Text, Button, Spinner, Alert, AlertIcon } from '@chakra-ui/react';
 import GraphComponent1 from './GraphComponent1';
 
 const DomainVisualization = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [domainData, setDomainData] = useState(null);
 
   useEffect(() => {
@@ -14,15 +15,18 @@ const DomainVisualization = () => {
 
   const fetchData = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/domainData');
+      setLoading(true);
+      setError(null);
+      const response = await fetch('http://localhost:8080/api/graph/Department of Computer Science Engineering');
       if (!response.ok) {
-        throw new Error('Failed to fetch data');
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
       setDomainData(data);
-      setLoading(false);
     } catch (error) {
       console.error('Error fetching data:', error);
+      setError(`Failed to fetch data: ${error.message}`);
+    } finally {
       setLoading(false);
     }
   };
@@ -36,31 +40,37 @@ const DomainVisualization = () => {
   };
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center" height="100vh">
+    <Box display="flex" flexDirection="column" alignItems="center" height="100vh" padding="20px">
       <Box position="absolute" top="19px" left="10px">
         <Button backgroundColor="grey" onClick={handlePrevClick}>
           Prev
         </Button>
       </Box>
+      
+      <Text fontSize="2xl" fontWeight="bold" textAlign="center" mb="4">
+        Domain Visualization
+      </Text>
+
       {loading ? (
         <Spinner size="xl" />
-      ) : (
-        <Box width="80%" mt="20">
-          <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="4">
-            Domain Visualization
-          </Text>
-          {domainData ? (
-            <GraphComponent1 domainData={domainData} />
-          ) : (
-            <Text textAlign="center" color="red.500">
-              Failed to fetch domain data. Please try again later.
-            </Text>
-          )}
-          <Button onClick={handleBackClick} mt="4">
-            Back to Home
-          </Button>
+      ) : error ? (
+        <Alert status="error">
+          <AlertIcon />
+          {error}
+        </Alert>
+      ) : domainData ? (
+        <Box width="100%" height="80vh">
+          <GraphComponent1 department="Department of Computer Science Engineering" />
         </Box>
+      ) : (
+        <Text textAlign="center" color="red.500">
+          No data available. Please try again later.
+        </Text>
       )}
+
+      <Button onClick={handleBackClick} mt="4">
+        Back to Home
+      </Button>
     </Box>
   );
 };

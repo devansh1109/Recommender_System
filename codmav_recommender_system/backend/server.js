@@ -365,6 +365,30 @@ app.get('/api/articles/:domainId', async (req, res) => {
   }
 });
 
+app.get('/api/persons/:department', async (req, res) => {
+  const department = req.params.department;
+  const session = driver.session();
+  try {
+    const result = await session.run(
+      `MATCH (p:Person {Department: $department})
+      OPTIONAL MATCH (p)-[:COLLABORATION]-()
+      WHERE (p)-[:COLLABORATION]-()  
+      RETURN DISTINCT p.name AS name`,
+      { department }
+    );
+
+    const personNames = result.records.map(record => record.get('name'));
+    res.json({ personNames });
+  } catch (error) {
+    console.error('Error fetching names:', error);
+    res.status(500).send('Error fetching names');
+  } finally {
+    await session.close();
+  }
+});
+
+
+
 // Start server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

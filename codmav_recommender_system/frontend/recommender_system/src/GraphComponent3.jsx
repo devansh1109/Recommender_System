@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import cytoscape from 'cytoscape';
 import coseBilkent from 'cytoscape-cose-bilkent';
+import { Input, Select, Box, VStack } from '@chakra-ui/react';
 
 cytoscape.use(coseBilkent);
 
@@ -10,6 +11,35 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
     const [titles, setTitles] = useState([]);
     const [selectedCollaboration, setSelectedCollaboration] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
+    const [names, setNames] = useState([]);
+    const [filteredNames, setFilteredNames] = useState([]);
+
+    // Fetch names from the backend
+    const fetchNames = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/api/persons'); // Update URL as needed
+            if (!response.ok) {
+                throw new Error('Failed to fetch names');
+            }
+            const data = await response.json();
+            setNames(data.personNames || []); // Adjust according to API response
+            setFilteredNames(data.personNames || []);
+        } catch (error) {
+            console.error('Error fetching names:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchNames();
+    }, []);
+
+    useEffect(() => {
+        if (searchQuery) {
+            setFilteredNames(names.filter(name => name.toLowerCase().includes(searchQuery.toLowerCase())));
+        } else {
+            setFilteredNames(names);
+        }
+    }, [searchQuery, names]);
 
     // Fetch data from the backend
     const fetchData = async (name) => {
@@ -52,18 +82,24 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
         }
     };
 
-    // Handle form submission and fetch data
+    useEffect(() => {
+        if (initialSearchQuery) {
+            setSearchQuery(initialSearchQuery);
+            fetchData(initialSearchQuery);
+        }
+    }, [initialSearchQuery]);
+
     const handleSearch = (event) => {
         event.preventDefault();
         fetchData(searchQuery);
     };
 
-    useEffect(() => {
-        if (initialSearchQuery) {
-          fetchData(initialSearchQuery);
-        }
-      }, [initialSearchQuery]);
-    
+    // Handle dropdown selection
+    const handleSelect = (event) => {
+        const name = event.target.value;
+        setSearchQuery(name);
+        fetchData(name);
+    };
 
     // Handle edge click event to fetch and display titles
     const handleEdgeClick = async (event) => {
@@ -130,7 +166,7 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
                         'color': '#fff',
                         'text-valign': 'center',
                         'text-halign': 'center',
-                        'font-size': 1,
+                        'font-size': 10,
                         'text-wrap': 'wrap',
                         'text-max-width': 80,
                         'padding': 5
@@ -191,58 +227,73 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
     }, [elements]);
 
     return (
-        <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100vh',
-            width: '100vw',
-            backgroundColor: '#f0f4f8',
-        }}>
-            <div style={{
-                padding: '20px',
-                backgroundColor: '#fff',
-                borderBottom: '1px solid #ddd',
-            }}>
-               
-                <form onSubmit={handleSearch} style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: '10px'
-                }}>
-                  
-                    
-                </form>
-            </div>
-            <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-                <div id="cy" style={{ flex: 1, height: '100%', backgroundColor: 'rgb(224,224,224)', borderRight: '1px solid #ddd' }}></div>
-                <div style={{
-                    flex: 1,
-                    color: '#333',
-                    padding: '20px',
-                    backgroundColor: '#fff',
-                    overflowY: 'auto',
-                    height: '100%',
-                }}>
+        <Box
+            display="flex"
+            flexDirection="column"
+            height="100vh"
+            width="100vw"
+            backgroundColor="#f0f4f8"
+        >
+            <Box
+                padding="20px"
+                backgroundColor="#fff"
+                borderBottom="1px solid #ddd"
+            >
+                <VStack spacing={4} align="stretch">
+                    <form onSubmit={handleSearch} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '10px' }}>
+                        <Input
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Enter person's name..."
+                        />
+                        <Select
+                            placeholder="Select a person"
+                            onChange={handleSelect}
+                            value={searchQuery}
+                        >
+                            {filteredNames.map((name) => (
+                                <option key={name} value={name}>
+                                    {name}
+                                </option>
+                            ))}
+                        </Select>
+                    </form>
+                </VStack>
+            </Box>
+            <Box display="flex" flex="1" overflow="hidden">
+                <Box
+                    id="cy"
+                    flex="1"
+                    height="100%"
+                    backgroundColor="rgb(224,224,224)"
+                    borderRight="1px solid #ddd"
+                />
+                <Box
+                    flex="1"
+                    color="#333"
+                    padding="20px"
+                    backgroundColor="#fff"
+                    overflowY="auto"
+                    height="100%"
+                >
                     {selectedCollaboration ? (
                         <>
                             <h2 style={{ fontSize: '1.5rem', marginBottom: '15px' }}>{selectedCollaboration}</h2>
                             <ul style={{ listStyleType: 'none', padding: '0' }}>
                                 {titles.map((title, index) => (
-                                    <li key={index} style={{
-                                        padding: '10px 0',
-                                        borderBottom: '1px solid rgb(152,152,152)'
-                                    }}>{title}</li>
+                                    <li key={index} style={{ padding: '10px 0', borderBottom: '1px solid #ddd' }}>
+                                        {title}
+                                    </li>
                                 ))}
                             </ul>
                         </>
                     ) : (
-                        <p>Select a collaboration to view titles</p>
+                        <p>Select a collaboration edge to see titles.</p>
                     )}
-                </div>
-            </div>
-        </div>
+                </Box>
+            </Box>
+        </Box>
     );
-}
+};
 
 export default GraphComponent3;
