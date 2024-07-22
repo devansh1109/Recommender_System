@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { ChakraProvider, Box, Input, Button, VStack, HStack, Text, Container, Collapse, IconButton, Spinner, Center, Alert, AlertIcon, Tooltip } from '@chakra-ui/react';
+import {
+  ChakraProvider, Box, Input, Button, VStack, HStack, Text, Container, Collapse,
+  IconButton, Spinner, Center, Alert, AlertIcon, Tooltip
+} from '@chakra-ui/react';
 import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+// Component to display a single search result and fetch similar articles
 const SearchResult = ({ result, excludeIds }) => {
   const [showSimilar, setShowSimilar] = useState(false);
   const [similarResults, setSimilarResults] = useState([]);
@@ -34,26 +38,49 @@ const SearchResult = ({ result, excludeIds }) => {
 
   return (
     <Box borderWidth="1px" borderRadius="lg" p="4" width="100%">
-      <HStack justify="space-between" alignItems="start">
-        <Box flex="1">
-          <Text fontSize="xl" fontWeight="bold">{result.title}</Text>
-        </Box>
-        <Box textAlign="right" minWidth="150px">
-          <Tooltip label={result.author} placement="top-start">
-            <Text 
-              fontSize="sm" 
-              fontWeight="medium" 
-              whiteSpace="nowrap" 
-              overflow="hidden" 
+      <VStack align="stretch" spacing={1}>
+        <HStack justify="space-between" alignItems="start">
+          <Box flex="1">
+            <Text fontSize="xl" fontWeight="bold">{result.title}</Text>
+          </Box>
+          <Box textAlign="right" minWidth="150px">
+            <Tooltip label={result.author} placement="top-start">
+              <Text
+                fontSize="sm"
+                fontWeight="medium"
+                whiteSpace="nowrap"
+                overflow="hidden"
+                textOverflow="ellipsis"
+                maxWidth="150px"
+              >
+                {result.author}
+              </Text>
+            </Tooltip>
+            <Text fontSize="sm" color="gray.500">{result.year}</Text>
+          </Box>
+        </HStack>
+        {result.co_authors && (
+          <Tooltip label={result.co_authors} placement="top-end">
+            <Text
+              fontSize="xs"
+              color="gray.600"
+              textAlign="right"
+              whiteSpace="nowrap"
+              overflow="hidden"
               textOverflow="ellipsis"
-              maxWidth="150px"
             >
-              {result.author}
+              Co-authors: {result.co_authors}
             </Text>
           </Tooltip>
-          <Text fontSize="sm" color="gray.500">{result.year}</Text>
-        </Box>
-      </HStack>
+        )}
+        {result.doi === 'N/A' ? (
+          <Text fontSize="sm" color="gray.500">DOI: N/A</Text>
+        ) : (
+          <Text fontSize="sm" color="blue.500">
+            DOI: <a href={result.doi} target="_blank" rel="noopener noreferrer">{result.doi}</a>
+          </Text>
+        )}
+      </VStack>
       <HStack justify="space-between" mt="2">
         <Box></Box>
         <HStack>
@@ -80,6 +107,25 @@ const SearchResult = ({ result, excludeIds }) => {
               <Box key={similar.id} p="2" bg="gray.50" borderRadius="md">
                 <Text fontSize="sm" fontWeight="medium">{similar.title}</Text>
                 <Text fontSize="xs" color="gray.500">{similar.author} ({similar.year})</Text>
+                {similar.doi !== 'N/A' && (
+                  <Text fontSize="xs" color="blue.500">
+                    DOI: <a href={similar.doi} target="_blank" rel="noopener noreferrer">{similar.doi}</a>
+                  </Text>
+                )}
+                {similar.co_authors && (
+                  <Tooltip label={similar.co_authors} placement="top-end">
+                    <Text
+                      fontSize="xs"
+                      color="gray.600"
+                      textAlign="right"
+                      whiteSpace="nowrap"
+                      overflow="hidden"
+                      textOverflow="ellipsis"
+                    >
+                      Co-authors: {similar.co_authors}
+                    </Text>
+                  </Tooltip>
+                )}
               </Box>
             ))
           )}
@@ -151,8 +197,6 @@ const KeywordSearch = () => {
           top="20px"
           left="20px"
           backgroundColor="grey"
-          marginTop="137px"
-          marginRight="300px"
           onClick={handlePrev}
         >
           Prev

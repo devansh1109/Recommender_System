@@ -3,14 +3,13 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
-import chromadb
-from chromadb.utils import embedding_functions
 import spacy
 from rank_bm25 import BM25Okapi
 import os
 from py2neo import Graph
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from tqdm import tqdm
 
 app = Flask(__name__)
 CORS(app)  # This allows all origins. For production, configure this more strictly.
@@ -40,27 +39,13 @@ def load_embeddings_and_metadata(file_path):
         with open(file_path, 'rb') as f:
             loaded_data = pickle.load(f)
             if isinstance(loaded_data, tuple) and len(loaded_data) == 2:
-                embeddings, metadata = loaded_data
-                print(f"Loaded {len(metadata)} entries from file.")
-                return embeddings, metadata
-            else:
-                print("Invalid data format in file. Starting fresh.")
-    else:
-        print("No existing file found. Starting fresh.")
+                return loaded_data
     return [], []
 
 # Save embeddings and metadata
 def save_embeddings_and_metadata(embeddings, metadata, file_path):
     with open(file_path, 'wb') as f:
         pickle.dump((embeddings, metadata), f)
-    print(f"Saved {len(metadata)} entries to file.")
-
-# Initialize ChromaDB
-client = chromadb.Client()
-collection = client.get_or_create_collection(
-    name="enhanced_search",
-    embedding_function=embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-mpnet-base-v2")
-)
 
 # Preprocess text
 def preprocess_text(text):
@@ -71,9 +56,19 @@ def entry_exists(entry, metadata_list):
     return any(
         m.get('title') == entry.get('title') and
         m.get('personName') == entry.get('personName') and
-        m.get('year') == entry.get('year')
+        m.get('year') == entry.get('year') and
+        m.get('co_authors') == entry.get('co_authors') and
+        m.get('doi', '').lower() == entry.get('doi', '').lower()
         for m in metadata_list
     )
+
+# Function to format DOI
+def format_doi(doi):
+    if doi is None or doi == 'N/A' or doi == 'NAN':
+        return 'N/A'
+    if doi.startswith('http'):
+        return doi
+    return f'https://doi.org/{doi}'
 
 # Function to check and update database
 def check_and_update_database():
@@ -85,39 +80,30 @@ def check_and_update_database():
            t.title AS title, 
            t.abstract AS abstract, 
            t.Year AS year, 
+           t.co_authors AS co_authors,
+           t.DOI AS doi,
            collect(k.keyw) AS keywords
     """
     results = graph.run(query).data()
     
-    print(f"Retrieved {len(results)} entries from the database.")
-    print(f"Current metadata has {len(metadata)} entries.")
-    
-    if results:
-        print("Structure of the first result:")
-        print(results[0])
-    
     new_entries = []
     for result in results:
+        result['doi'] = format_doi(result.get('doi'))
         if not entry_exists(result, metadata):
             new_entries.append(result)
             metadata.append(result)
     
     if new_entries:
-        print(f"Adding {len(new_entries)} new entries to the search index.")
-        for entry in new_entries:
+        print(f"Creating embeddings for {len(new_entries)} new entries...")
+        for entry in tqdm(new_entries, desc="Creating embeddings", unit="entry"):
             text_to_embed = f"{entry['title']} {entry['abstract']} {' '.join(entry['keywords'])}"
             embedding = sentence_model.encode([text_to_embed])[0]
             embeddings.append(embedding)
         
-        # Save updated embeddings and metadata
         save_embeddings_and_metadata(embeddings, metadata, 'embeddings_metadata.pkl')
-        
-        # Update search indices only if there are new entries
         update_search_indices()
     else:
-        print("No new entries found. Search indices remain unchanged.")
-
-    print(f"Total entries in metadata: {len(metadata)}")
+        print("No new entries found. Database is up to date.")
 
 # Update TF-IDF and BM25 indices
 def update_search_indices():
@@ -126,15 +112,15 @@ def update_search_indices():
     # Create TF-IDF index
     tfidf = TfidfVectorizer()
     tfidf_matrix = tfidf.fit_transform([
-        " ".join(m['keywords']) + " " * 3 +  # Join keywords into a string
+        " ".join(m['keywords']) + " " * 3 +
         m['title'] + " " +
-        m['abstract']  # Keep abstract with lower weight
+        m['abstract']
         for m in metadata
     ])
 
     # Create BM25 index
     corpus = [doc.split() for doc in [
-        (" ".join(m['keywords']) + " ") * 3 +  # Join keywords into a string
+        (" ".join(m['keywords']) + " ") * 3 +
         (m['title'] + " ") * 4 +
         m['abstract']
         for m in metadata
@@ -145,7 +131,6 @@ def comprehensive_search(query, page=1, limit=20):
     global tfidf, tfidf_matrix, bm25, corpus
     
     if tfidf is None or tfidf_matrix is None or bm25 is None or corpus is None:
-        print("Search indices are not initialized. Updating now...")
         update_search_indices()
     
     preprocessed_query = preprocess_text(query)
@@ -163,9 +148,9 @@ def comprehensive_search(query, page=1, limit=20):
     
     # Combine scores with updated weights
     combined_scores = (
-        0.35 * tfidf_similarities +  # Increase weight for TF-IDF
-        0.35 * bm25_scores +         # Increase weight for BM25
-        0.3 * st_similarities        # Decrease weight for sentence embeddings
+        0.35 * tfidf_similarities +
+        0.35 * bm25_scores +
+        0.3 * st_similarities
     )
 
     # Normalize scores
@@ -192,7 +177,9 @@ def comprehensive_search(query, page=1, limit=20):
             'title': metadata[idx]['title'],
             'keywords': metadata[idx]['keywords'],
             'author': metadata[idx]['personName'],
+            'co_authors': metadata[idx]['co_authors'],
             'year': int(year_str),
+            'doi': metadata[idx]['doi'],
             'score': float(score)
         })
     
@@ -219,7 +206,9 @@ def get_similar_papers(paper_id, n_results=5, exclude_ids=None):
             'title': metadata[idx]['title'],
             'keywords': metadata[idx]['keywords'],
             'author': metadata[idx]['personName'],
+            'co_authors': metadata[idx]['co_authors'],
             'year': int(year_str),
+            'doi': metadata[idx]['doi'],
             'score': float(similarities[idx])
         })
     
