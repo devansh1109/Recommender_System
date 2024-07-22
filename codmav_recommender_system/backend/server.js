@@ -370,8 +370,7 @@ app.get('/api/persons/:department', async (req, res) => {
   const session = driver.session();
   try {
     const result = await session.run(
-      `MATCH (p:Person {Department: $department})
-      OPTIONAL MATCH (p)-[:COLLABORATION]-()
+      `MATCH (p:Person {Department: $department})-[:COLLABORATION]-()
       WHERE (p)-[:COLLABORATION]-()  
       RETURN DISTINCT p.name AS name`,
       { department }
