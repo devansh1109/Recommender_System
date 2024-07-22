@@ -54,7 +54,7 @@ const ResultPage = () => {
       <Box p="20px">
         <Button
           position="absolute"
-          top="20px"
+          top="17px"
           left="20px"
           backgroundColor="grey"
           marginTop="137px"

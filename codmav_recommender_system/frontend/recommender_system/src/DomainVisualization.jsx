@@ -31,12 +31,21 @@ const DomainVisualization = () => {
     navigate('/');
   };
 
+  const handlePrevClick = () => {
+    navigate(-1);
+  };
+
   return (
-    <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+    <Box display="flex" flexDirection="column" alignItems="center" height="100vh">
+      <Box position="absolute" top="19px" left="10px">
+        <Button backgroundColor="grey" onClick={handlePrevClick}>
+          Prev
+        </Button>
+      </Box>
       {loading ? (
         <Spinner size="xl" />
       ) : (
-        <Box width="80%">
+        <Box width="80%" mt="20">
           <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="4">
             Domain Visualization
           </Text>

@@ -172,8 +172,6 @@ app.get('/api/collaborations/:personName', async (req, res) => {
           `MATCH (p1:Person {name: $personName})-[r:COLLABORATION]-(p2:Person)
           WHERE p2.name IS NOT NULL
           RETURN p1, r, p2, r.count AS count, id(r) AS edgeId
-          ORDER BY r.count DESC
-          LIMIT 10
           `,
           { personName }
       );

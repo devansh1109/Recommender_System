@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import GraphComponent3 from './GraphComponent3';
 import {
   ChakraProvider,
@@ -17,6 +17,7 @@ const CollaborationGraph = () => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const department = searchParams.get('department');
+  const navigate = useNavigate();
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -25,9 +26,20 @@ const CollaborationGraph = () => {
     }
   };
 
+  const handlePrev = () => {
+    navigate(-1);
+  };
+
   return (
     <ChakraProvider>
       <Box p={5}>
+        <Button
+          backgroundColor="grey"
+          onClick={handlePrev}
+          style={{ marginBottom: '20px' }}
+        >
+          Prev
+        </Button>
         <Heading mb={4}>Collaboration Network for {department}</Heading>
         <Text mb={4}>Enter a person's name to view their collaboration network:</Text>
         <form onSubmit={handleSearch}>

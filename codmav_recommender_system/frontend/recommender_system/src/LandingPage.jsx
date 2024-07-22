@@ -220,7 +220,6 @@ const LandingPage = () => {
                       placeholder="Select Department"
                       variant="filled"
                       className="custom-select"
-                      
                     >
                       {departments.map((dept, index) => (
                         <option key={index} value={dept}>
@@ -261,6 +260,8 @@ const LandingPage = () => {
                     value={keyword}
                     onChange={handleKeywordChange}
                     variant="filled"
+                    // _placeholder={{ color: 'white' }} // Change the placeholder color to white
+                    color="white" // Change the input text color to white
                   />
                 </Box>
               )}

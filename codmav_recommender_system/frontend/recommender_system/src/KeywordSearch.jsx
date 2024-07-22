@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChakraProvider, Box, Input, Button, VStack, HStack, Text, Container, Collapse, IconButton, Spinner, Center, Alert, AlertIcon, Tooltip } from '@chakra-ui/react';
 import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const SearchResult = ({ result, excludeIds }) => {
   const [showSimilar, setShowSimilar] = useState(false);
@@ -47,7 +47,6 @@ const SearchResult = ({ result, excludeIds }) => {
               overflow="hidden" 
               textOverflow="ellipsis"
               maxWidth="150px"
-              color="white"
             >
               {result.author}
             </Text>
@@ -92,6 +91,7 @@ const SearchResult = ({ result, excludeIds }) => {
 
 const KeywordSearch = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -139,15 +139,29 @@ const KeywordSearch = () => {
     fetchResults(true);
   };
 
+  const handlePrev = () => {
+    navigate(-1);
+  };
+
   return (
     <ChakraProvider>
       <Container maxW="container.lg" py="8">
+        <Button
+          position="absolute"
+          top="20px"
+          left="20px"
+          backgroundColor="grey"
+          marginTop="137px"
+          marginRight="300px"
+          onClick={handlePrev}
+        >
+          Prev
+        </Button>
         <VStack spacing="4">
           <Input
             placeholder="Enter your search query"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            
           />
           <Button colorScheme="blue" onClick={handleSearch} isLoading={loading && page === 1}>
             Search

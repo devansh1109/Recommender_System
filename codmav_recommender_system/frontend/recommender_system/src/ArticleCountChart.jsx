@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
 import neo4j from 'neo4j-driver';
+import { Button } from '@chakra-ui/react';
+import { useNavigate } from 'react-router-dom';
 
 const ArticleCountChart = () => {
   const [data, setData] = useState([]);
   const [domains, setDomains] = useState([]);
   const [selectedDomains, setSelectedDomains] = useState(['', '', '']);
+
+  const navigate = useNavigate();
 
   // Neo4j connection details (replace with your actual credentials)
   const uri = 'neo4j+s://4317f220.databases.neo4j.io';
@@ -107,8 +111,21 @@ const ArticleCountChart = () => {
     return traces;
   };
 
+  const handlePrev = () => {
+    navigate(-1);
+  };
+
   return (
     <div style={{ fontFamily: 'Arial, sans-serif' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <Button
+          backgroundColor="grey"
+          onClick={handlePrev}
+          style={{ marginLeft: '20px' }}
+        >
+          Prev
+        </Button>
+      </div>
       <h1 style={{ textAlign: 'center', fontSize: '2.5rem', marginBottom: '20px', color: '#333' }}>
         Article Count by Year and Domain
       </h1>
@@ -136,7 +153,6 @@ const ArticleCountChart = () => {
         <Plot
           data={updateChart()}
           layout={{
-            
             xaxis: { title: 'Year', tickfont: { size: 14 } },
             yaxis: { title: 'Number of Articles', tickfont: { size: 14 } },
             legend: { title: { text: 'Domain', font: { size: 16 } } },
