@@ -104,7 +104,9 @@ const ArticleCountChart = () => {
         x: years,
         y: counts,
         mode: 'lines+markers',
-        name: domain
+        name: domain,
+        line: { shape: 'spline' },
+        marker: { size: 8 }
       });
     });
 
@@ -116,8 +118,8 @@ const ArticleCountChart = () => {
   };
 
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+    <div style={{ fontFamily: 'Arial, sans-serif', textAlign: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px' }}>
         <Button
           backgroundColor="grey"
           onClick={handlePrev}
@@ -126,7 +128,7 @@ const ArticleCountChart = () => {
           Back
         </Button>
       </div>
-      <h1 style={{ textAlign: 'center', fontSize: '2.5rem', marginBottom: '20px', color: '#333' }}>
+      <h1 style={{ fontSize: '2.5rem', marginBottom: '20px', color: '#333' }}>
         Article Count by Year and Domain
       </h1>
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
@@ -149,18 +151,30 @@ const ArticleCountChart = () => {
           </div>
         ))}
       </div>
-      <div style={{ width: '90%', height: '600px', margin: '0 auto' }}>
+      <div style={{ width: '100%', height: '800px', margin: '0 auto' }}>
         <Plot
           data={updateChart()}
           layout={{
+            width: 1200, // Set the width of the chart
+            height: 500, // Set the height of the chart
             xaxis: { title: 'Year', tickfont: { size: 14 } },
             yaxis: { title: 'Number of Articles', tickfont: { size: 14 } },
-            legend: { title: { text: 'Domain', font: { size: 16 } } },
-            autosize: true,
-            margin: { l: 80, r: 80, t: 100, b: 80 },
+            legend: {
+              title: { text: 'Domain', font: { size: 16 } },
+              x: 1.05, // Move legend further right outside the plot area
+              xanchor: 'left', // Anchor legend to the left
+              y: 1,
+              bgcolor: '#f8f9fa', // Adds background color to the legend
+              bordercolor: '#ccc', // Adds border color to the legend
+              borderwidth: 1, // Adds border width to the legend
+            },
+            autosize: false,
+            margin: { l: 80, r: 200, t: 100, b: 80 }, // Adjust margins to accommodate larger chart
             paper_bgcolor: '#f8f9fa',
             plot_bgcolor: '#f8f9fa',
+            font: { size: 16, color: '#333' },
           }}
+          config={{ responsive: true,displayModeBar: false }}
         />
       </div>
     </div>

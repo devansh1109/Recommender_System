@@ -36,43 +36,22 @@ const SearchResult = ({ result, excludeIds }) => {
     setShowSimilar(!showSimilar);
   };
 
+  const authorsList = [result.author, ...(result.co_authors ? result.co_authors.split(', ') : [])].filter(Boolean);
+
   return (
     <Box borderWidth="1px" borderRadius="lg" p="4" width="100%">
-      <VStack align="stretch" spacing={1}>
-        <HStack justify="space-between" alignItems="start">
-          <Box flex="1">
-            <Text fontSize="xl" fontWeight="bold">{result.title}</Text>
-          </Box>
-          <Box textAlign="right" minWidth="150px">
-            <Tooltip label={result.author} placement="top-start">
-              <Text
-                fontSize="sm"
-                fontWeight="medium"
-                whiteSpace="nowrap"
-                overflow="hidden"
-                textOverflow="ellipsis"
-                maxWidth="150px"
-              >
-                {result.author}
-              </Text>
-            </Tooltip>
-            <Text fontSize="sm" color="gray.500">{result.year}</Text>
-          </Box>
+      <VStack align="stretch" spacing={2}>
+        <Text fontSize="xl" fontWeight="bold">{result.title}</Text>
+        <HStack justify="space-between" align="start">
+          <Text fontSize="md" color="gray.700" fontWeight="semibold" flex="1">
+            Authors List:
+            <br />
+            {authorsList.join(', ')}
+          </Text>
+          <Text fontSize="sm" color="gray.500" textAlign="right">
+            {result.year}
+          </Text>
         </HStack>
-        {result.co_authors && (
-          <Tooltip label={result.co_authors} placement="top-end">
-            <Text
-              fontSize="xs"
-              color="gray.600"
-              textAlign="right"
-              whiteSpace="nowrap"
-              overflow="hidden"
-              textOverflow="ellipsis"
-            >
-              Co-authors: {result.co_authors}
-            </Text>
-          </Tooltip>
-        )}
         {result.doi === 'N/A' ? (
           <Text fontSize="sm" color="gray.500">DOI: N/A</Text>
         ) : (
@@ -106,25 +85,18 @@ const SearchResult = ({ result, excludeIds }) => {
             similarResults.map((similar) => (
               <Box key={similar.id} p="2" bg="gray.50" borderRadius="md">
                 <Text fontSize="sm" fontWeight="medium">{similar.title}</Text>
-                <Text fontSize="xs" color="gray.500">{similar.author} ({similar.year})</Text>
+                <HStack justify="space-between" align="start">
+                  <Text fontSize="xs" color="gray.700" fontWeight="semibold" flex="1">
+                    Authors: {[similar.author, ...(similar.co_authors ? similar.co_authors.split(', ') : [])].filter(Boolean).join(', ')}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">
+                    {similar.year}
+                  </Text>
+                </HStack>
                 {similar.doi !== 'N/A' && (
                   <Text fontSize="xs" color="blue.500">
                     DOI: <a href={similar.doi} target="_blank" rel="noopener noreferrer">{similar.doi}</a>
                   </Text>
-                )}
-                {similar.co_authors && (
-                  <Tooltip label={similar.co_authors} placement="top-end">
-                    <Text
-                      fontSize="xs"
-                      color="gray.600"
-                      textAlign="right"
-                      whiteSpace="nowrap"
-                      overflow="hidden"
-                      textOverflow="ellipsis"
-                    >
-                      Co-authors: {similar.co_authors}
-                    </Text>
-                  </Tooltip>
                 )}
               </Box>
             ))
@@ -193,20 +165,20 @@ const KeywordSearch = () => {
     <ChakraProvider>
       <Box>
         <Container maxW="container.lg" py="4">
-          <Box mb="4"> {/* Container for Navbar */}
+          <Box mb="4">
             {/* Add your Navbar component here */}
           </Box>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb="4">
             <Button
-              backgroundColor="gray.300" // Adjust background color
+              backgroundColor="gray.300"
               onClick={handlePrev}
-              size="sm" // Make button small
-              width="auto" // Adjust width as needed
+              size="sm"
+              width="auto"
             >
               Back
             </Button>
-            <Text fontSize="20px" color="Gray" fontStyle="italic" fontWeight="bold" align="center" marginRight="30%" >
-              Enter a keyword to view similar articles.
+            <Text fontSize="20px" color="Gray" fontStyle="italic" fontWeight="bold" align="center" marginRight="30%">
+              Enter a keyword to view related articles.
             </Text>
           </Box>
           <VStack spacing="4" align="stretch">

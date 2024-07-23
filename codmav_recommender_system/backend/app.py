@@ -6,11 +6,13 @@ from sentence_transformers import SentenceTransformer
 import spacy
 from rank_bm25 import BM25Okapi
 import os
+import json
 from py2neo import Graph
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from tqdm import tqdm
 from functools import lru_cache
+from collections import defaultdict
 
 app = Flask(__name__)
 CORS(app)
@@ -33,6 +35,7 @@ bm25 = None
 corpus = None
 embeddings = []
 metadata = []
+search_cache = defaultdict(lambda: {'results': [], 'page': 0})
 
 def load_embeddings_and_metadata(file_path):
     if os.path.exists(file_path):
@@ -93,6 +96,7 @@ def check_and_update_database():
         
         save_embeddings_and_metadata(embeddings, metadata, 'embeddings_metadata.pkl')
         update_search_indices()
+        print(f"Added {len(new_entries)} new entries to the database.")
     else:
         print("No new entries found. Database is up to date.")
 
@@ -113,10 +117,18 @@ def update_search_indices():
     bm25 = BM25Okapi(tokenized_corpus)
 
 def comprehensive_search(query, page=1, limit=20):
-    global tfidf, tfidf_matrix, bm25, corpus
+    global tfidf, tfidf_matrix, bm25, corpus, search_cache
     
     if tfidf is None or tfidf_matrix is None or bm25 is None or corpus is None:
         update_search_indices()
+    
+    cache_key = f"{query}_{limit}"
+    cache_entry = search_cache[cache_key]
+    
+    if page <= cache_entry['page']:
+        start = (page - 1) * limit
+        end = start + limit
+        return cache_entry['results'][start:end]
     
     preprocessed_query = preprocess_text(query)
     
@@ -135,10 +147,7 @@ def comprehensive_search(query, page=1, limit=20):
     
     sorted_indices = normalized_scores.argsort()[::-1]
     
-    start = (page - 1) * limit
-    end = start + limit
-    
-    results = [
+    new_results = [
         {
             'id': int(idx),
             'title': metadata[idx]['title'],
@@ -149,10 +158,16 @@ def comprehensive_search(query, page=1, limit=20):
             'doi': metadata[idx]['doi'],
             'score': float(normalized_scores[idx])
         }
-        for idx in sorted_indices[start:end]
+        for idx in sorted_indices[len(cache_entry['results']):]
     ]
     
-    return results
+    cache_entry['results'].extend(new_results)
+    cache_entry['page'] = page
+    
+    start = (page - 1) * limit
+    end = start + limit
+    
+    return cache_entry['results'][start:end]
 
 @lru_cache(maxsize=100)
 def get_similar_papers(paper_id, n_results=5, exclude_ids=None):
@@ -192,6 +207,7 @@ def search():
     query = request.args.get('q', '')
     page = int(request.args.get('page', '1'))
     limit = int(request.args.get('limit', '20'))
+    
     if not query:
         return jsonify({'error': 'No query provided'}), 400
     
