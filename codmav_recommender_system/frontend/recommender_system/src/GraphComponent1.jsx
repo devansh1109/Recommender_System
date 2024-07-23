@@ -11,6 +11,7 @@ const GraphComponent1 = ({ department }) => {
     const [cy, setCy] = useState(null);
     const [titles, setTitles] = useState([]);
     const [selectedDomainName, setSelectedDomainName] = useState('');
+    const [initialDomainArticles, setInitialDomainArticles] = useState([]);
 
     useEffect(() => {
         async function fetchData() {
@@ -45,6 +46,10 @@ const GraphComponent1 = ({ department }) => {
                 });
 
                 setElements(cyElements);
+                setInitialDomainArticles(nodes.filter(node => node.type === 'Domain').map(domain => ({
+                    name: domain.label,
+                    count: domain.count || 0
+                })));
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -188,7 +193,7 @@ const GraphComponent1 = ({ department }) => {
                         boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                     }}
                 >
-                    Prev
+                    Back
                 </button>
                 <h1 style={{
                     color: '#333',
@@ -225,52 +230,84 @@ const GraphComponent1 = ({ department }) => {
                         alignItems: 'center',
                     }}>
                         <h3 style={{
+                            color: 'grey',
+                            fontWeight: 'bold',
+                            textAlign: 'center',
+                            marginBottom: '10px',
+                            fontStyle:'italic',
+                            fontSize:"20px"
+
+                        }}>
+                            Click on any domain node to view its articles.
+                        </h3>
+                        <h3 style={{
                             color: '#333',
                             fontWeight: 'bold',
                             textAlign: 'center',
                             marginBottom: '10px',
                         }}>
-                            {selectedDomainName ? `Articles of ${selectedDomainName}` : 'No results'}
+                            {selectedDomainName ? `Articles of ${selectedDomainName}` : 'Total Articles per Domain'}
                         </h3>
-                        <p style={{
-                            color: '#666',
-                            margin: '10px 0',
-                        }}>
-                            Total articles: {titles.length}
-                        </p>
-                        <ol style={{
-                            paddingLeft: '20px',
-                            marginTop: '10px',
-                            listStyleType: 'decimal',
-                            width: '100%',
-                        }}>
-                            {titles.map((title, index) => (
-                                <li key={index} style={{
-                                    color: '#333',
-                                    marginBottom: '10px',
+                        {selectedDomainName ? (
+                            <>
+                                <p style={{
+                                    color: '#666',
+                                    margin: '10px 0',
                                 }}>
-                                    {title.title}
-                                </li>
-                            ))}
-                        </ol>
+                                    Total articles: {titles.length}
+                                </p>
+                                <ol style={{
+                                    paddingLeft: '20px',
+                                    marginTop: '10px',
+                                    listStyleType: 'decimal',
+                                    width: '100%',
+                                }}>
+                                    {titles.map((title, index) => (
+                                        <li key={index} style={{
+                                            color: '#333',
+                                            marginBottom: '10px',
+                                        }}>
+                                            {title.title}
+                                        </li>
+                                    ))}
+                                </ol>
+                            </>
+                        ) : (
+                            <ol style={{
+                                paddingLeft: '20px',
+                                marginTop: '10px',
+                                listStyleType: 'decimal',
+                                width: '100%',
+                            }}>
+                                {initialDomainArticles.map((domain, index) => (
+                                    <li key={index} style={{
+                                        color: '#333',
+                                        marginBottom: '10px',
+                                    }}>
+                                        {domain.name}: {domain.count} articles
+                                    </li>
+                                ))}
+                            </ol>
+                        )}
                     </div>
                 </div>
             </div>
             <style>
                 {`
-                    ::-webkit-scrollbar {
-                        width: 12px;
-                    }
-                    ::-webkit-scrollbar-track {
-                        background: #f1f1f1;
-                    }
-                    ::-webkit-scrollbar-thumb {
-                        background: #888;
-                        border-radius: 10px;
-                    }
-                    ::-webkit-scrollbar-thumb:hover {
-                        background: #555;
-                    }
+                ::-webkit-scrollbar {
+                    width: 12px;
+                }
+                ::-webkit-scrollbar-track {
+                    background: #f1f1f1;
+                    border-radius: 10px;
+                }
+                ::-webkit-scrollbar-thumb {
+                    background: #888;
+                    border-radius: 10px;
+                }
+                ::-webkit-scrollbar-thumb:hover {
+                    background: #555;
+                }
                 `}
             </style>
         </div>

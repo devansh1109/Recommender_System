@@ -61,12 +61,15 @@ const ResultPage = () => {
           marginRight="300px"
           onClick={handlePrev}
         >
-          Prev
+          Back
         </Button>
 
         <Flex direction="column" alignItems="center" mb="20px">
           <Text fontSize="2xl" fontWeight="bold" mb="10px">
             Faculty Members Working in {selectedDepartment.toUpperCase()} Under {selectedDomain.toUpperCase()}
+          </Text>
+          <Text fontSize="20px" fontWeight="bold" fontStyle="italic" color="gray">
+            Select a node or Expert ID to access the faculty profile.
           </Text>
         </Flex>
 
@@ -95,15 +98,14 @@ const ResultPage = () => {
                     directRecords.map((record, index) => (
                       <ListItem key={index} overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
                         <Text>
-                        {record.name}- 
+                          {record.name}-
                           <Link
                             href={`https://pes.irins.org/profile/${record.expertId}`}
                             isExternal
                             color="blue.500"
                           >
-                          {record.expertId}
+                            {record.expertId}
                           </Link>
-                          
                           {record.similarFaculty ? (
                             <Text color="red.500" ml="5px">
                               (Similar Faculty)
@@ -129,7 +131,7 @@ const ResultPage = () => {
               boxSizing="border-box"
             >
               <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
-                SIMILAR FACULTY
+                Faculty with Publications in This Domain but Not Recognized as Experts:
               </Text>
               <Text fontSize="md" textAlign="center" mb="10px">
                 Number of Faculty Members {indirectCount}

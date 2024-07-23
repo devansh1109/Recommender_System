@@ -196,20 +196,23 @@ const KeywordSearch = () => {
           <Box mb="4"> {/* Container for Navbar */}
             {/* Add your Navbar component here */}
           </Box>
-          <Box display="flex" justifyContent="flex-start" mb="4">
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb="4">
             <Button
               backgroundColor="gray.300" // Adjust background color
               onClick={handlePrev}
               size="sm" // Make button small
               width="auto" // Adjust width as needed
             >
-              Prev
+              Back
             </Button>
+            <Text fontSize="20px" color="Gray" fontStyle="italic" fontWeight="bold" align="center" marginRight="30%" >
+              Enter a keyword to view similar articles.
+            </Text>
           </Box>
           <VStack spacing="4" align="stretch">
             <VStack spacing="4">
               <Input
-                placeholder="Enter your search query"
+                placeholder="Enter a keyword"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />

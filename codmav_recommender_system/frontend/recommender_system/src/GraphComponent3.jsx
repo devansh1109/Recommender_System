@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import cytoscape from 'cytoscape';
 import coseBilkent from 'cytoscape-cose-bilkent';
-import { Input, Select, Box, VStack } from '@chakra-ui/react';
+import { Input, Select, Box, VStack, Text, Button } from '@chakra-ui/react';
 
 cytoscape.use(coseBilkent);
 
@@ -13,16 +13,16 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [names, setNames] = useState([]);
     const [filteredNames, setFilteredNames] = useState([]);
+    const [collaboratorCount, setCollaboratorCount] = useState(0);
 
-    // Fetch names from the backend
     const fetchNames = async () => {
         try {
-            const response = await fetch('http://localhost:8080/api/persons'); // Update URL as needed
+            const response = await fetch('http://localhost:8080/api/persons');
             if (!response.ok) {
                 throw new Error('Failed to fetch names');
             }
             const data = await response.json();
-            setNames(data.personNames || []); // Adjust according to API response
+            setNames(data.personNames || []);
             setFilteredNames(data.personNames || []);
         } catch (error) {
             console.error('Error fetching names:', error);
@@ -41,16 +41,18 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
         }
     }, [searchQuery, names]);
 
-    // Fetch data from the backend
     const fetchData = async (name) => {
         try {
+            // Clear previous data
+            setTitles([]);
+            setSelectedCollaboration('');
+
             const response = await fetch(`http://localhost:8080/api/collaborations/${name}`);
             if (!response.ok) {
                 throw new Error('Failed to fetch data');
             }
             const { nodes, edges, collaborationData } = await response.json();
 
-            // Process nodes and edges to form Cytoscape elements
             const cyElements = [];
             nodes.forEach(node => {
                 cyElements.push({
@@ -69,14 +71,19 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
                         source: edge.source,
                         target: edge.target,
                         label: 'COLLABORATIONS',
-                        count: Number(edge.count) || 0,  // Convert count to a number
-                        titles: edge.titles || [],  // Default to empty array if no titles property
-                        collaborationId: edge.collaborationId  // Ensure this is included
+                        count: Number(edge.count) || 0,
+                        titles: edge.titles || [],
+                        collaborationId: edge.collaborationId
                     }
                 });
             });
 
             setElements(cyElements);
+
+            // Calculate the number of unique collaborators
+            const uniqueCollaborators = new Set(edges.map(edge => edge.target));
+            setCollaboratorCount(uniqueCollaborators.size);
+
         } catch (error) {
             console.error('Error fetching data:', error);
         }
@@ -89,19 +96,12 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
         }
     }, [initialSearchQuery]);
 
-    const handleSearch = (event) => {
-        event.preventDefault();
-        fetchData(searchQuery);
-    };
-
-    // Handle dropdown selection
     const handleSelect = (event) => {
         const name = event.target.value;
         setSearchQuery(name);
         fetchData(name);
     };
 
-    // Handle edge click event to fetch and display titles
     const handleEdgeClick = async (event) => {
         const edge = event.target;
         const collaborationId = edge.data('collaborationId');
@@ -119,13 +119,11 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
         }
     };
 
-    // Handle edge mouseover event to show count tooltip
     const handleEdgeMouseover = (event) => {
         const edge = event.target;
         const count = edge.data('count');
         let tooltip = document.getElementById('tooltip');
 
-        // Create a new tooltip if it doesn't exist
         if (!tooltip) {
             tooltip = document.createElement('div');
             tooltip.id = 'tooltip';
@@ -142,7 +140,6 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
         tooltip.style.top = `${event.originalEvent.clientY + 5}px`;
     };
 
-    // Handle edge mouseout event to hide count tooltip
     const handleEdgeMouseout = () => {
         const tooltip = document.getElementById('tooltip');
         if (tooltip) {
@@ -150,17 +147,29 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
         }
     };
 
-    // Function to update node colors based on edge counts
+    const calculateColor = (count) => {
+        const maxCount = 20;
+        const minColor = [255, 240, 26];
+        const maxColor = [205, 0, 0];
+
+        const ratio = Math.min(count / maxCount, 1);
+        const color = minColor.map((min, index) => {
+            const max = maxColor[index];
+            return Math.round(min + ratio * (max - min));
+        });
+
+        return `rgba(${color[0]}, ${color[1]}, ${color[2]}, 1)`;
+    };
+
     const updateNodeColors = (cyInstance) => {
         cyInstance.edges().forEach(edge => {
             const targetNode = edge.target();
             const count = edge.data('count');
-            const color = `rgba(${255 - count * 9}, ${255 - count*5}, 0, 1)`;
+            const color = calculateColor(count);
             targetNode.style('background-color', color);
         });
     };
 
-    // Render the Cytoscape instance
     const renderCytoscape = (elements) => {
         const cyInstance = cytoscape({
             container: document.getElementById('cy'),
@@ -173,7 +182,7 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
                         'width': 100,
                         'height': 100,
                         'background-color': '#1f77b4',
-                        'color': '#fff',
+                        'color': 'black',
                         'text-valign': 'center',
                         'text-halign': 'center',
                         'font-size': 10,
@@ -185,11 +194,11 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
                 {
                     selector: 'node[type="Person"]',
                     style: {
-                        'background-color': 'gold',
+                        'background-color': 'grey',
                         'width': 40,
                         'height': 40,
                         'font-size': 5.3,
-                        'color': 'black',
+                        'color': 'peach',
                         'text-max-width': 120,
                         'padding': 10
                     }
@@ -216,20 +225,14 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
             }
         });
 
-        // Center and zoom out to fit the graph on page load
         cyInstance.fit(cyInstance.nodes(), 10);
 
-        // Handle edge click event to fetch and display titles
         cyInstance.on('tap', 'edge', handleEdgeClick);
-
-        // Handle edge mouseover and mouseout events
         cyInstance.on('mouseover', 'edge', handleEdgeMouseover);
         cyInstance.on('mouseout', 'edge', handleEdgeMouseout);
 
-        // Update node colors based on edge counts
         updateNodeColors(cyInstance);
 
-        // Update the cy state
         setCy(cyInstance);
     };
 
@@ -246,39 +249,40 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
             height="100vh"
             width="100vw"
             backgroundColor="#f0f4f8"
+            p={4}
         >
             <Box display="flex" flex="1" overflow="hidden">
                 <Box
                     id="cy"
-                    flex="1"
+                    flex="3"
+                    backgroundColor="#ffffff"
+                    borderRadius="8px"
+                    boxShadow="md"
                     height="100%"
-                    backgroundColor="rgb(224,224,224)"
-                    borderRight="1px solid #ddd"
+                    marginRight="16px"
                 />
-                <Box
-                    flex="1"
-                    color="#333"
-                    padding="20px"
-                    backgroundColor="#fff"
-                    overflowY="auto"
-                    height="100%"
-                >
-                    {selectedCollaboration ? (
-                        <>
-                            <h2 style={{ fontSize: '1.5rem', marginBottom: '15px' }}>{selectedCollaboration}</h2>
-                            <ul style={{ listStyleType: 'none', padding: '0' }}>
-                                {titles.map((title, index) => (
-                                    <li key={index} style={{ padding: '10px 0', borderBottom: '1px solid #ddd' }}>
-                                        {title}
-                                    </li>
-                                ))}
-                            </ul>
-                        </>
-                    ) : (
-                        <p>Select a collaboration edge to see titles.</p>
-                    )}
+                <Box flex="1" p={4} borderRadius="8px" boxShadow="md" backgroundColor="#ffffff">
+                    <Box>
+                        <VStack spacing={4} align="start">
+                        <Text fontSize="20px" color="Gray" fontStyle="italic" fontWeight="bold">
+                            Click on any edge to view the corresponding collaborative articles.
+                        </Text>
+                            {selectedCollaboration && (
+                                <Box>
+                                    <Text fontWeight="bold">{selectedCollaboration}</Text>
+                                    <ul>
+                                        {titles.map(title => (
+                                            <li key={title}>{title}</li>
+                                        ))}
+                                    </ul>
+                                </Box>
+                            )}
+                            <Text>Number of unique collaborators: {collaboratorCount}</Text>
+                        </VStack>
+                    </Box>
                 </Box>
             </Box>
+
         </Box>
     );
 };

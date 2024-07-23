@@ -98,12 +98,14 @@ const LandingPage = () => {
     setShowDropdowns(false);
     setShowVisualizations(false);
     setShowSearch(true);
+    setShowGraphButtons(false);
   };
 
   const handleShowDropdowns = () => {
     setShowDropdowns(true);
     setShowSearch(false);
     setShowVisualizations(false);
+    setShowGraphButtons(false);
   };
 
   const handleShowVisualizations = () => {
@@ -191,13 +193,13 @@ const LandingPage = () => {
           <Text fontSize="2xl" fontWeight="bold" mb="20px">
             EXPLORE COLLABORATORS
           </Text>
-          <Button onClick={handleShowDropdowns} colorScheme="blue" variant="outline" mb="10px">
+          <Button onClick={handleShowDropdowns} colorScheme="blue" variant="filled" backgroundColor="white" mb="10px">
             Search By Domain
           </Button>
-          <Button onClick={handleShowSearch} colorScheme="blue" variant="outline" mb="10px">
+          <Button onClick={handleShowSearch} colorScheme="blue" variant="filled" backgroundColor="white" mb="10px">
             Search By Keyword
           </Button>
-          <Button onClick={handleShowVisualizations} colorScheme="blue" variant="outline">
+          <Button onClick={handleShowVisualizations} colorScheme="blue" variant="filled" backgroundColor="white">
             Existing Collaboration & Trends
           </Button>
         </Flex>
@@ -296,13 +298,13 @@ const LandingPage = () => {
 
         {showGraphButtons && (
           <Flex mt="10px" zIndex="1" justifyContent="center" gap="10px">
-            <Button onClick={handleNavigateToDomainVisualization} variant="filled" backgroundColor='white'>
+            <Button onClick={handleNavigateToDomainVisualization} variant="filled" backgroundColor="white">
               Domain Visualization
             </Button>
-            <Button onClick={handleNavigateToCollaborations} variant="filled" backgroundColor='white'>
+            <Button onClick={handleNavigateToCollaborations} variant="filled" backgroundColor="white">
               Existing Collaborations
             </Button>
-            <Button onClick={handleNavigateToHistoryOfArticles} variant="filled" backgroundColor='white'>
+            <Button onClick={handleNavigateToHistoryOfArticles} variant="filled" backgroundColor="white">
               Domain Trend
             </Button>
           </Flex>

@@ -19,7 +19,7 @@ const GraphComponent = ({ domain }) => {
       try {
         const response = await fetch(`http://localhost:8080/api/graph?domain=${domain}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch data');
+          throw new Error(`Failed to fetch data: HTTP error! Status: ${response.status}`);
         }
         const { nodes, edges } = await response.json();
 
