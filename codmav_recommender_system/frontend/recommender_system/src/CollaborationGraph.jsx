@@ -50,11 +50,6 @@ const CollaborationGraph = () => {
     navigate(-1);
   };
 
-  const handleSearchChange = (event) => {
-    const query = event.target.value;
-    setSearchQuery(query);
-    setFilteredNames(names.filter(name => name.toLowerCase().includes(query.toLowerCase())));
-  };
 
   return (
     <ChakraProvider>
@@ -64,7 +59,7 @@ const CollaborationGraph = () => {
           onClick={handlePrev}
           style={{ marginBottom: '20px' }}
         >
-          Prev
+          Back
         </Button>
         <Heading mb={4}>Collaboration Network for {department}</Heading>
         <Text mb={4}>Enter a person's name to view their collaboration network:</Text>

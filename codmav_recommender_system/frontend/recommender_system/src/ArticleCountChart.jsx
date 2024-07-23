@@ -123,7 +123,7 @@ const ArticleCountChart = () => {
           onClick={handlePrev}
           style={{ marginLeft: '20px' }}
         >
-          Prev
+          Back
         </Button>
       </div>
       <h1 style={{ textAlign: 'center', fontSize: '2.5rem', marginBottom: '20px', color: '#333' }}>

@@ -191,39 +191,50 @@ const KeywordSearch = () => {
 
   return (
     <ChakraProvider>
-      <Container maxW="container.lg" py="8">
-        <Button
-          position="absolute"
-          top="20px"
-          left="20px"
-          backgroundColor="grey"
-          onClick={handlePrev}
-        >
-          Prev
-        </Button>
-        <VStack spacing="4">
-          <Input
-            placeholder="Enter your search query"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <Button colorScheme="blue" onClick={handleSearch} isLoading={loading && page === 1}>
-            Search
-          </Button>
-        </VStack>
-        <VStack spacing="4" mt="8" width="100%">
-          {results.map((result) => (
-            <SearchResult key={result.id} result={result} excludeIds={results.map(r => r.id)} />
-          ))}
-        </VStack>
-        {results.length > 0 && hasMore && (
-          <Center mt="4">
-            <Button onClick={handleLoadMore} isLoading={loading && page > 1}>
-              Load More
+      <Box>
+        <Container maxW="container.lg" py="4">
+          <Box mb="4"> {/* Container for Navbar */}
+            {/* Add your Navbar component here */}
+          </Box>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb="4">
+            <Button
+              backgroundColor="gray.300" // Adjust background color
+              onClick={handlePrev}
+              size="sm" // Make button small
+              width="auto" // Adjust width as needed
+            >
+              Back
             </Button>
-          </Center>
-        )}
-      </Container>
+            <Text fontSize="20px" color="Gray" fontStyle="italic" fontWeight="bold" align="center" marginRight="30%" >
+              Enter a keyword to view similar articles.
+            </Text>
+          </Box>
+          <VStack spacing="4" align="stretch">
+            <VStack spacing="4">
+              <Input
+                placeholder="Enter a keyword"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+              <Button colorScheme="blue" onClick={handleSearch} isLoading={loading && page === 1}>
+                Search
+              </Button>
+            </VStack>
+            <VStack spacing="4" mt="8" width="100%">
+              {results.map((result) => (
+                <SearchResult key={result.id} result={result} excludeIds={results.map(r => r.id)} />
+              ))}
+            </VStack>
+            {results.length > 0 && hasMore && (
+              <Center mt="4">
+                <Button onClick={handleLoadMore} isLoading={loading && page > 1}>
+                  Load More
+                </Button>
+              </Center>
+            )}
+          </VStack>
+        </Container>
+      </Box>
     </ChakraProvider>
   );
 };
