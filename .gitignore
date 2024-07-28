@@ -1,0 +1,52 @@
+# Ignore node_modules in backend
+/backend/node_modules
+node_modules
+# Ignore node_modules in frontend
+/frontend/node_modules
+/frontend/recommender_system/node_modules
+
+
+# Ignore logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignore environment variable files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore build output
+dist
+build
+
+# Ignore coverage directory used by tools like istanbul
+coverage
+
+# Ignore npm package lock files
+package-lock.json
+yarn.lock
+
+# Ignore IDE/editor specific files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Ignore temporary files
+*.swp
+*.bak
+*.tmp
+
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+*$py.class

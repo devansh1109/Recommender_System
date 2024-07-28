@@ -1,0 +1,9 @@
+numpy
+scikit-learn
+sentence-transformers
+spacy
+rank-bm25
+py2neo
+flask
+flask-cors
+tqdm
