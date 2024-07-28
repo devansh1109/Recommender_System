@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Box, Text, Link, Divider, List, ListItem, Flex, Button, ChakraProvider, extendTheme } from '@chakra-ui/react';
+import { Box, Text, Link, Divider, List, ListItem, Flex, Button, Input, ChakraProvider, extendTheme } from '@chakra-ui/react';
 import GraphComponent from './GraphComponent';
 
 const ResultPage = () => {
@@ -15,13 +15,13 @@ const ResultPage = () => {
   const [directCount, setDirectCount] = useState(0);
   const [indirectCount, setIndirectCount] = useState(0);
   const [error, setError] = useState(null);
+  const [collaborationCounts, setCollaborationCounts] = useState([]);
+  const [searchName, setSearchName] = useState('');
 
-  // Use parameters from URL directly
   const selectedDepartment = departmentParam || '';
   const selectedDomain = domainParam || '';
 
   useEffect(() => {
-    // Fetch data when department or domain changes
     const fetchData = async () => {
       try {
         const response = await fetch('http://localhost:8080/api/query', {
@@ -42,8 +42,29 @@ const ResultPage = () => {
       }
     };
 
+    const fetchTopCollaborators = async () => {
+      try {
+        if (!selectedDomain || !searchName) return; // Skip request if required parameters are not set
+    
+        const response = await fetch(`http://localhost:8080/api/top-collaborators?domainName=${encodeURIComponent(selectedDomain)}&personName=${encodeURIComponent(searchName)}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+    
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const jsonData = await response.json();
+        setCollaborationCounts(jsonData);
+        setError(null);
+      } catch (error) {
+        console.error('Error fetching top collaborators:', error);
+        setError(error.message);
+      }
+    };
+    
+
     fetchData();
-  }, [selectedDomain, selectedDepartment]);
+    fetchTopCollaborators();
+  }, [selectedDomain, selectedDepartment, searchName]);
 
   const handlePrev = () => {
     navigate(-1);
@@ -77,7 +98,7 @@ const ResultPage = () => {
           <Box width="30%" height="100%" display="flex" flexDirection="column" padding="20px">
             <Box
               width="100%"
-              height="50%"
+              height="30%"
               border="1px solid #ccc"
               mb="20px"
               overflow="hidden"
@@ -92,13 +113,13 @@ const ResultPage = () => {
                 Number of Faculty Members {directCount}
               </Text>
               <Divider mb="10px" />
-              <Box maxHeight="calc(50vh - 80px)" overflowY="auto" padding="10px">
+              <Box maxHeight="calc(30vh - 80px)" overflowY="auto" padding="10px">
                 <List spacing={3}>
                   {directRecords.length > 0 ? (
                     directRecords.map((record, index) => (
                       <ListItem key={index} overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
                         <Text>
-                          {record.name}-
+                          {record.name} - 
                           <Link
                             href={`https://pes.irins.org/profile/${record.expertId}`}
                             isExternal
@@ -123,7 +144,7 @@ const ResultPage = () => {
 
             <Box
               width="100%"
-              height="50%"
+              height="30%"
               border="1px solid #ccc"
               overflow="hidden"
               display="flex"
@@ -137,13 +158,13 @@ const ResultPage = () => {
                 Number of Faculty Members {indirectCount}
               </Text>
               <Divider mb="10px" />
-              <Box maxHeight="calc(50vh - 80px)" overflowY="auto" padding="10px">
+              <Box maxHeight="calc(30vh - 80px)" overflowY="auto" padding="10px">
                 <List spacing={3}>
                   {indirectRecords.length > 0 ? (
                     indirectRecords.map((record, index) => (
                       <ListItem key={index} overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
                         <Text>
-                          {record.name}-
+                          {record.name} - 
                           <Link
                             href={`https://pes.irins.org/profile/${record.expertId}`}
                             isExternal
@@ -163,6 +184,45 @@ const ResultPage = () => {
                     <ListItem>No indirect results found</ListItem>
                   )}
                 </List>
+              </Box>
+            </Box>
+
+            <Box
+              width="100%"
+              height="40%"
+              border="1px solid #ccc"
+              overflow="hidden"
+              display="flex"
+              flexDirection="column"
+              boxSizing="border-box"
+            >
+              <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
+                Top Collaborators by Collaboration Count
+              </Text>
+              <Divider mb="10px" />
+              <Box padding="10px">
+                <Input
+                  placeholder="Search by name"
+                  value={searchName}
+                  onChange={(e) => setSearchName(e.target.value)}
+                  mb="10px"
+                />
+                <Box maxHeight="calc(40vh - 80px)" overflowY="auto">
+                  <List spacing={3}>
+                    {collaborationCounts.length > 0 ? (
+                      collaborationCounts.map((collab, index) => (
+                        <ListItem key={index} overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                          <Text>
+                            {collab.collaboratorName} 
+                            (Score: {collab.score})
+                          </Text>
+                        </ListItem>
+                      ))
+                    ) : (
+                      <ListItem>No top collaborators found</ListItem>
+                    )}
+                  </List>
+                </Box>
               </Box>
             </Box>
           </Box>

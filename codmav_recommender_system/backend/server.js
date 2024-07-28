@@ -31,83 +31,153 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// Existing endpoint to get graph data for a selected department
-app.get('/api/graph', async (req, res) => {
-  const { domain } = req.query;
+app.get('/api/top-collaborators', async (req, res) => {
+  const { domainName, personName } = req.query;
+
+  if (!domainName || !personName) {
+    console.error('Missing required parameters:', { domainName, personName });
+    return res.status(400).send('Domain name and person name are required');
+  }
+
   const session = driver.session();
-  
   try {
+    const query = `
+      MATCH (t:Title)<-[:WRITES]-(p2:Person)-[:EXPERT_IN_DIRECT]->(d:Domain {name: $domainName})-[:HAS_ARTICLE]->(t)
+      OPTIONAL MATCH (p1:Person {name: $personName})-[r:COLLABORATION]-(p2)
+      WHERE p2.name <> p1.name
+      WITH p1, p2, COALESCE(COUNT(r), 0) AS collaborations, COALESCE(COUNT(t), 0) AS titleCount
+      WITH p1, p2, collaborations, titleCount, (0.7 * titleCount + 0.3 * collaborations) AS score
+      RETURN p1.name AS personName, p2.name AS collaboratorName, collaborations, titleCount, score
+      ORDER BY score DESC
+      LIMIT 5;
+    `;
+
+    const result = await session.run(query, {
+      personName,
+      domainName,
+    });
+
+    // Helper function to handle Neo4j Integer conversion
+    const toNumber = value => neo4j.isInt(value) ? value.toNumber() : value;
+
+    // Map the results to include the computed score and handle null values
+    const collaborators = result.records.map(record => ({
+      personName: record.get('personName'),
+      collaboratorName: record.get('collaboratorName') || null,
+      collaborations: toNumber(record.get('collaborations')),
+      titleCount: toNumber(record.get('titleCount')),
+      score: toNumber(record.get('score'))
+    }));
+
+    // Ensure the specified person is included even if they have no collaborations
+    const personInResults = collaborators.find(collab => collab.personName === personName);
+    if (!personInResults) {
+      // Add person with zero collaborations and titles if not present
+      collaborators.push({
+        personName, // Add only the person's name
+        collaboratorName: null,
+        collaborations: 0,
+        titleCount: 0,
+        score: 0
+      });
+    }
+
+    res.json(collaborators);
+  } catch (error) {
+    console.error('Error fetching top collaborators:', error);
+    res.status(500).send('Internal Server Error');
+  } finally {
+    await session.close();
+  }
+});
+
+
+
+
+app.get('/api/graph', async (req, res) => {
+  const { domain, personName } = req.query;
+  const session = driver.session();
+
+  try {
+    // Query for direct relationships including collaboration count
     const queryDirect = `
-      MATCH (p:Person)-[w:EXPERT_IN_DIRECT]->(d:Domain{name: $domain})
-      RETURN p, w, d;
+      MATCH (p:Person)-[w:EXPERT_IN_DIRECT]->(d:Domain {name: $domain})
+      RETURN p.name AS personName, w, d,p;
     `;
 
+    // Query for indirect relationships
     const queryIndirect = `
-      MATCH (p:Person)-[w:EXPERT_IN_INDIRECT]->(d:Domain{name: $domain})
+      MATCH (p:Person)-[w:EXPERT_IN_INDIRECT]->(d:Domain {name: $domain})
       RETURN p, w, d;
     `;
 
-    const resultDirect = await session.run(queryDirect, { domain });
+    // Execute queries
+    const resultDirect = await session.run(queryDirect, { domain, personName });
     const resultIndirect = await session.run(queryIndirect, { domain });
 
+    // Prepare response data
     const nodes = {};
     const edges = [];
-    
+
+
+    // Process direct relationships
     resultDirect.records.forEach(record => {
       const p = record.get('p');
       const d = record.get('d');
       const w = record.get('w');
+      const personName = record.get('personName');
 
       if (p && p.properties.name && d && d.properties.name && w) {
         const personNodeId = p.identity.toString();
         if (!nodes[personNodeId]) {
           nodes[personNodeId] = { id: personNodeId, label: p.properties.name, type: 'Person', properties: p.properties };
         }
-        
+
         const domainNodeId = d.identity.toString();
         if (!nodes[domainNodeId]) {
           nodes[domainNodeId] = { id: domainNodeId, label: d.properties.name, type: 'Domain', properties: d.properties };
         }
-    
+
         if (w && nodes[w.start.toString()] && nodes[w.end.toString()]) {
           edges.push({ id: `${w.start.toString()}-${w.end.toString()}`, source: w.start.toString(), target: w.end.toString(), label: w.type });
         }
       }
     });
 
+    // Process indirect relationships
     resultIndirect.records.forEach(record => {
       const p = record.get('p');
       const d = record.get('d');
       const w = record.get('w');
 
-      if (p && p.properties.name && d && d.properties.name && w) {
+      if (p && d && w) {
         const personNodeId = p.identity.toString();
         if (!nodes[personNodeId]) {
           nodes[personNodeId] = { id: personNodeId, label: p.properties.name, type: 'Person', properties: p.properties };
         }
-        
+
         const domainNodeId = d.identity.toString();
         if (!nodes[domainNodeId]) {
           nodes[domainNodeId] = { id: domainNodeId, label: d.properties.name, type: 'Domain', properties: d.properties };
         }
-    
+
         if (w && nodes[w.start.toString()] && nodes[w.end.toString()]) {
           edges.push({ id: `${w.start.toString()}-${w.end.toString()}`, source: w.start.toString(), target: w.end.toString(), label: w.type });
         }
       }
     });
 
-    // Convert nodes object to array
-    const nodesArray = Object.values(nodes);
-
-    res.json({ nodes: nodesArray, edges });
+    // Send response
+    res.json({ nodes: Object.values(nodes), edges});
   } catch (error) {
-    console.error('Error fetching data from Neo4j:', error);
-    res.status(500).json({ error: 'Failed to fetch data from Neo4j' });
+    console.error('Error fetching data:', error);
+    res.status(500).send('Error fetching data');
   } finally {
     await session.close();
   }
 });
+
+
 
 // Existing endpoint to handle POST query
 app.post('/api/query', async (req, res) => {
@@ -162,7 +232,6 @@ app.post('/api/query', async (req, res) => {
   }
 });
 
-// New endpoint: Fetch collaborations for the given person
 // New endpoint: Fetch collaborations for the given person
 app.get('/api/collaborations/:personName', async (req, res) => {
   const personName = req.params.personName;
