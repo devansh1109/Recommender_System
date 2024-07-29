@@ -13,6 +13,8 @@ from flask_cors import CORS
 from tqdm import tqdm
 from functools import lru_cache
 from collections import defaultdict
+import threading
+import concurrent.futures
 
 app = Flask(__name__)
 CORS(app)
@@ -37,6 +39,14 @@ embeddings = []
 metadata = []
 search_cache = defaultdict(lambda: {'results': [], 'page': 0})
 
+# Thread-local storage for database connection
+thread_local = threading.local()
+
+def get_db_connection():
+    if not hasattr(thread_local, "graph"):
+        thread_local.graph = Graph(AURA_URI, auth=(AURA_USERNAME, AURA_PASSWORD))
+    return thread_local.graph
+
 def load_embeddings_and_metadata(file_path):
     if os.path.exists(file_path):
         with open(file_path, 'rb') as f:
@@ -47,7 +57,7 @@ def save_embeddings_and_metadata(embeddings, metadata, file_path):
     with open(file_path, 'wb') as f:
         pickle.dump((embeddings, metadata), f)
 
-@lru_cache(maxsize=1000)
+@lru_cache(maxsize=10000)
 def preprocess_text(text):
     doc = nlp(text.lower())
     return ' '.join([token.lemma_ for token in doc if not token.is_stop and token.is_alpha])
@@ -80,16 +90,19 @@ def check_and_update_database():
            t.DOI AS doi,
            collect(k.keyw) AS keywords
     """
-    results = graph.run(query).data()
+    results = get_db_connection().run(query).data()
     
     new_entries = [result for result in results if not entry_exists(result, metadata)]
     
     if new_entries:
         print(f"Creating embeddings for {len(new_entries)} new entries...")
-        new_embeddings = sentence_model.encode([
-            f"{entry['title']} {entry['abstract']} {' '.join(entry['keywords'])}"
-            for entry in new_entries
-        ])
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            new_embeddings = list(executor.map(
+                lambda entry: sentence_model.encode(
+                    f"{entry['title']} {entry['abstract']} {' '.join(entry['keywords'])}"
+                ),
+                new_entries
+            ))
         
         embeddings.extend(new_embeddings)
         metadata.extend(new_entries)
@@ -169,7 +182,7 @@ def comprehensive_search(query, page=1, limit=20):
     
     return cache_entry['results'][start:end]
 
-@lru_cache(maxsize=100)
+@lru_cache(maxsize=1000)
 def get_similar_papers(paper_id, n_results=5, exclude_ids=None):
     if exclude_ids is None:
         exclude_ids = set()
@@ -235,10 +248,10 @@ def similar():
 
 @app.route('/api/update_database', methods=['POST'])
 def update_database():
-    check_and_update_database()
-    return jsonify({'message': 'Database check completed'}), 200
+    threading.Thread(target=check_and_update_database).start()
+    return jsonify({'message': 'Database update started in background'}), 202
 
 if __name__ == '__main__':
     embeddings, metadata = load_embeddings_and_metadata('embeddings_metadata.pkl')
     check_and_update_database()
-    app.run(debug=True)
+    app.run(debug=False, threaded=True)
