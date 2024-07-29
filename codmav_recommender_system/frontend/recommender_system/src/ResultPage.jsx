@@ -17,6 +17,7 @@ const ResultPage = () => {
   const [error, setError] = useState(null);
   const [collaborationCounts, setCollaborationCounts] = useState([]);
   const [searchName, setSearchName] = useState('');
+  const [searchTriggered, setSearchTriggered] = useState(false);
 
   const selectedDepartment = departmentParam || '';
   const selectedDomain = domainParam || '';
@@ -42,32 +43,43 @@ const ResultPage = () => {
       }
     };
 
-    const fetchTopCollaborators = async () => {
-      try {
-        if (!selectedDomain || !searchName) return; // Skip request if required parameters are not set
-    
-        const response = await fetch(`http://localhost:8080/api/top-collaborators?domainName=${encodeURIComponent(selectedDomain)}&personName=${encodeURIComponent(searchName)}`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        });
-    
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        const jsonData = await response.json();
-        setCollaborationCounts(jsonData);
-        setError(null);
-      } catch (error) {
-        console.error('Error fetching top collaborators:', error);
-        setError(error.message);
-      }
-    };
-    
-
     fetchData();
-    fetchTopCollaborators();
-  }, [selectedDomain, selectedDepartment, searchName]);
+  }, [selectedDomain, selectedDepartment]);
+
+  const fetchTopCollaborators = async () => {
+    try {
+      if (!selectedDomain || !searchName) return;
+
+      const response = await fetch(`http://localhost:8080/api/top-collaborators?domainName=${encodeURIComponent(selectedDomain)}&personName=${encodeURIComponent(searchName)}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      const jsonData = await response.json();
+
+      if (jsonData.length === 0) {
+        setError(`No collaborator found for ${searchName}`);
+      } else {
+        setCollaborationCounts(jsonData);
+        setSearchTriggered(true);
+        setError(null);
+      }
+    } catch (error) {
+      console.error('Error fetching top collaborators:', error);
+      setError(error.message);
+    }
+  };
 
   const handlePrev = () => {
     navigate(-1);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchName(e.target.value);
+    setCollaborationCounts([]);
+    setSearchTriggered(false);
+    setError(null); // Reset error when the search input changes
   };
 
   return (
@@ -96,6 +108,50 @@ const ResultPage = () => {
 
         <Flex width="100%" height="100%" direction="row">
           <Box width="30%" height="100%" display="flex" flexDirection="column" padding="20px">
+            <Box
+              width="100%"
+              height="40%"
+              border="1px solid #ccc"
+              overflow="hidden"
+              display="flex"
+              flexDirection="column"
+              boxSizing="border-box"
+            >
+              <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
+                Top Collaborators by Collaboration Count
+              </Text>
+              <Divider mb="10px" />
+              <Box padding="10px">
+                <Input
+                  placeholder="Search by name"
+                  value={searchName}
+                  onChange={handleSearchChange}
+                  mb="10px"
+                />
+                <Button onClick={fetchTopCollaborators} mb="10px">Search</Button>
+                {error && (
+                  <Text color="red.500" mb="10px">
+                    {error}
+                  </Text>
+                )}
+                <Box maxHeight="calc(40vh - 80px)" overflowY="auto">
+                  <List spacing={3}>
+                    {searchTriggered && (collaborationCounts.length > 0 ? (
+                      collaborationCounts.map((collab, index) => (
+                        <ListItem key={index} overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                          <Text>
+                            {collab.collaboratorName}
+                          </Text>
+                        </ListItem>
+                      ))
+                    ) : (
+                      <ListItem>No top collaborators found</ListItem>
+                    ))}
+                  </List>
+                </Box>
+              </Box>
+            </Box>
+
             <Box
               width="100%"
               height="30%"
@@ -184,45 +240,6 @@ const ResultPage = () => {
                     <ListItem>No indirect results found</ListItem>
                   )}
                 </List>
-              </Box>
-            </Box>
-
-            <Box
-              width="100%"
-              height="40%"
-              border="1px solid #ccc"
-              overflow="hidden"
-              display="flex"
-              flexDirection="column"
-              boxSizing="border-box"
-            >
-              <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
-                Top Collaborators by Collaboration Count
-              </Text>
-              <Divider mb="10px" />
-              <Box padding="10px">
-                <Input
-                  placeholder="Search by name"
-                  value={searchName}
-                  onChange={(e) => setSearchName(e.target.value)}
-                  mb="10px"
-                />
-                <Box maxHeight="calc(40vh - 80px)" overflowY="auto">
-                  <List spacing={3}>
-                    {collaborationCounts.length > 0 ? (
-                      collaborationCounts.map((collab, index) => (
-                        <ListItem key={index} overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
-                          <Text>
-                            {collab.collaboratorName} 
-                            (Score: {collab.score})
-                          </Text>
-                        </ListItem>
-                      ))
-                    ) : (
-                      <ListItem>No top collaborators found</ListItem>
-                    )}
-                  </List>
-                </Box>
               </Box>
             </Box>
           </Box>

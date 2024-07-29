@@ -94,7 +94,8 @@ const GraphComponent = ({ domain }) => {
               'text-wrap': 'wrap',
               'text-max-width': 100,
               'padding': '10px',
-              'border': '2px solid white'
+              'border': '2px solid white',
+              'text-transform': 'uppercase' // Ensure text is in capital letters
             }
           },
           {

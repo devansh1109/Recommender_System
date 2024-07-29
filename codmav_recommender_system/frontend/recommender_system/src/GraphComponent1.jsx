@@ -122,6 +122,7 @@ const GraphComponent1 = ({ department }) => {
                     selector: 'node[type="Domain"]',
                     style: {
                         'background-color': 'skyblue',
+                        'text-transform': 'uppercase', // Ensure text is in uppercase
                         'text-max-width': 80,
                         'cursor': 'pointer'
                     }
@@ -257,9 +258,10 @@ const GraphComponent1 = ({ department }) => {
                             fontWeight: 'bold',
                             textAlign: 'center',
                             marginBottom: '10px',
-                            fontSize:"20px"
+                            fontSize: '20px',
+                            textTransform: 'uppercase' // Ensure domain names are in uppercase
                         }}>
-                            {selectedDomainName ? `Articles of ${selectedDomainName}` : 'Total Articles per Domain'}
+                            {selectedDomainName ? `Articles of ${selectedDomainName.toUpperCase()}` : 'Total Articles per Domain'}
                         </h3>
                         {selectedDomainName ? (
                             <>
@@ -296,32 +298,34 @@ const GraphComponent1 = ({ department }) => {
                                     <li key={index} style={{
                                         color: '#333',
                                         marginBottom: '10px',
+                                        textTransform: 'uppercase' // Ensure text is in uppercase
                                     }}>
-                                        {`${domain.name}: ${domain.count}`}
+                                        {domain.name}: {domain.count} articles
                                     </li>
                                 ))}
                             </ol>
                         )}
                     </div>
                 </div>
+                {tooltipContent && (
+                    <div
+                        style={{
+                            position: 'absolute',
+                            left: tooltipPosition.x,
+                            top: tooltipPosition.y,
+                            padding: '5px 10px',
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            color: 'white',
+                            borderRadius: '5px',
+                            pointerEvents: 'none',
+                            fontSize: '12px',
+                            zIndex: 10,
+                        }}
+                    >
+                        {tooltipContent}
+                    </div>
+                )}
             </div>
-            {tooltipContent && (
-                <div style={{
-                    position: 'absolute',
-                    top: tooltipPosition.y,
-                    left: tooltipPosition.x,
-                    padding: '5px 10px',
-                    backgroundColor: 'black',
-                    color: 'white',
-                    borderRadius: '5px',
-                    pointerEvents: 'none',
-                    zIndex: 1000,
-                    fontSize: '14px',
-                    whiteSpace: 'nowrap'
-                }}>
-                    {tooltipContent}
-                </div>
-            )}
         </div>
     );
 };
