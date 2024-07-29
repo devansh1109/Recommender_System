@@ -128,6 +128,14 @@ const GraphComponent1 = ({ department }) => {
                     }
                 },
                 {
+                    selector: 'node[type="Domain"].hover',
+                    style: {
+                        'background-color': 'rgb(115, 147, 179)', // Change to the color you want on hover
+                        'border-width': 2,
+                        'border-color': 'rgb(70, 130, 180)'
+                    }
+                },
+                {
                     selector: 'edge',
                     style: {
                         'width': 2,
@@ -146,9 +154,9 @@ const GraphComponent1 = ({ department }) => {
                 nodeDimensionsIncludeLabels: true
             }
         });
-
+    
         cyInstance.fit(cyInstance.nodes(), 10);
-
+    
         cyInstance.on('tap', 'node', (event) => {
             const node = event.target;
             if (node.data('type') === 'Domain') {
@@ -158,29 +166,34 @@ const GraphComponent1 = ({ department }) => {
                 fetchTitles(domainId, domainName);
             }
         });
-
+    
         cyInstance.on('mouseover', 'node[type="Domain"]', (event) => {
             const node = event.target;
+            node.addClass('hover'); // Add 'hover' class on mouseover
+    
             setTooltipContent('Click to view articles');
             const { x, y } = node.renderedPosition();
             const container = document.getElementById('cy');
             const containerRect = container.getBoundingClientRect();
             const nodeX = x + containerRect.left;
             const nodeY = y + containerRect.top;
-
+    
             setTooltipPosition({
                 x: nodeX + 20,
                 y: nodeY - 20
             });
         });
-
-        cyInstance.on('mouseout', 'node[type="Domain"]', () => {
+    
+        cyInstance.on('mouseout', 'node[type="Domain"]', (event) => {
+            const node = event.target;
+            node.removeClass('hover'); // Remove 'hover' class on mouseout
+    
             setTooltipContent('');
         });
-
+    
         return cyInstance;
     }
-
+    
     return (
         <div style={{
             display: 'flex',

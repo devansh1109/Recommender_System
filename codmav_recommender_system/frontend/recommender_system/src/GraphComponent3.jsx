@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import cytoscape from 'cytoscape';
 import coseBilkent from 'cytoscape-cose-bilkent';
-import { Input, Select, Box, VStack, Text, Button } from '@chakra-ui/react';
+import { Input, Select, Box, VStack, Text, Button, List, ListItem, Divider } from '@chakra-ui/react';
+import Fuse from 'fuse.js';
 
 cytoscape.use(coseBilkent);
 
@@ -14,6 +15,7 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
     const [names, setNames] = useState([]);
     const [filteredNames, setFilteredNames] = useState([]);
     const [collaboratorCount, setCollaboratorCount] = useState(0);
+    const [fuse, setFuse] = useState(null);
 
     const fetchNames = async () => {
         try {
@@ -22,8 +24,16 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
                 throw new Error('Failed to fetch names');
             }
             const data = await response.json();
-            setNames(data.personNames || []);
-            setFilteredNames(data.personNames || []);
+            const personNames = data.personNames || [];
+            setNames(personNames);
+            setFilteredNames(personNames);
+
+            // Initialize Fuse.js
+            const fuseInstance = new Fuse(personNames, {
+                includeScore: true,
+                threshold: 0.3,
+            });
+            setFuse(fuseInstance);
         } catch (error) {
             console.error('Error fetching names:', error);
         }
@@ -34,12 +44,13 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
     }, []);
 
     useEffect(() => {
-        if (searchQuery) {
-            setFilteredNames(names.filter(name => name.toLowerCase().includes(searchQuery.toLowerCase())));
+        if (fuse && searchQuery) {
+            const result = fuse.search(searchQuery);
+            setFilteredNames(result.map(({ item }) => item));
         } else {
             setFilteredNames(names);
         }
-    }, [searchQuery, names]);
+    }, [searchQuery, fuse, names]);
 
     const fetchData = async (name) => {
         try {
@@ -121,9 +132,13 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
 
     const handleEdgeMouseover = (event) => {
         const edge = event.target;
-        const count = edge.data('count');
-        let tooltip = document.getElementById('tooltip');
+        edge.style({
+            'line-color': 'rgb(255, 95, 21)', // Outline color
+            'target-arrow-color': 'rgb(255, 95, 21)',
+            'width': 6 // Thicker width for the outline
+        });
 
+        let tooltip = document.getElementById('tooltip');
         if (!tooltip) {
             tooltip = document.createElement('div');
             tooltip.id = 'tooltip';
@@ -140,7 +155,14 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
         tooltip.style.top = `${event.originalEvent.clientY + 5}px`;
     };
 
-    const handleEdgeMouseout = () => {
+    const handleEdgeMouseout = (event) => {
+        const edge = event.target;
+        edge.style({
+            'line-color': '#999',
+            'target-arrow-color': '#999',
+            'width': 2 // Default width
+        });
+
         const tooltip = document.getElementById('tooltip');
         if (tooltip) {
             document.body.removeChild(tooltip);
@@ -255,37 +277,35 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
                 <Box
                     id="cy"
                     flex="3"
-                    backgroundColor="#ffffff"
-                    borderRadius="8px"
-                    boxShadow="md"
-                    height="100%"
-                    marginRight="16px"
-                />
-                <Box flex="1" p={4} borderRadius="8px" boxShadow="md" backgroundColor="#ffffff">
-                    <Box>
-                        <VStack spacing={4} align="start">
+                    border="1px solid #ccc"
+                    borderRadius="md"
+                    backgroundColor="rgb(220,220,220)"
+                    position="relative"
+                ></Box>
+                <Box flex="1" p={4}>
+                    <VStack spacing={4} align="stretch">
                         
-                        
-                        
-                        
-                        <Text fontWeight="bold" fontSize="20px">{selectedCollaboration}</Text>
-                        <Text fontSize="16px" color="black" fontStyle="italic">
-                            Titles:
+                        <Text fontSize="lg" fontWeight="bold" color="#2D3748">
+                            {selectedCollaboration && `Selected Collaboration: ${selectedCollaboration}`}
                         </Text>
-                        {titles.length > 0 ? (
-                            <VStack spacing={2} align="start">
+                        <Divider />
+                        <Text fontSize="15px" fontStyle="italic" fontWeight='bold' mb={2}>Number of Collaborators: {collaboratorCount}</Text>
+                        <Box
+                            overflowY="auto"
+                            maxHeight="400px"
+                            border="1px solid #e2e8f0"
+                            borderRadius="md"
+                            backgroundColor="rgb(224,224,224)"
+                        >
+                            <List spacing={3} p={4}>
                                 {titles.map((title, index) => (
-                                    <Text key={index}>{title}</Text>
+                                    <ListItem key={index} p={3} borderWidth="1px" borderRadius="md" borderColor="#e2e8f0" backgroundColor="#edf2f7">
+                                        <Text fontSize="md" color="#2D3748">{title}</Text>
+                                    </ListItem>
                                 ))}
-                            </VStack>
-                        ) : (
-                            <Text>No titles available</Text>
-                        )}
-                        <Text fontSize="15px" color="Gray" fontStyle="italic" fontWeight="bold">
-                            Collaborators: {collaboratorCount}
-                        </Text>
-                        </VStack>
-                    </Box>
+                            </List>
+                        </Box>
+                    </VStack>
                 </Box>
             </Box>
         </Box>
