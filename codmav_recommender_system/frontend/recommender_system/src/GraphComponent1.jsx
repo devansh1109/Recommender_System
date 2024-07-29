@@ -2,6 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import cytoscape from 'cytoscape';
 import coseBilkent from 'cytoscape-cose-bilkent';
+import {
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalHeader,
+    ModalFooter,
+    ModalBody,
+    ModalCloseButton,
+    Button,
+    useDisclosure,
+  } from '@chakra-ui/react';
 
 cytoscape.use(coseBilkent);
 
@@ -14,6 +25,7 @@ const GraphComponent1 = ({ department }) => {
     const [initialDomainArticles, setInitialDomainArticles] = useState([]);
     const [tooltipContent, setTooltipContent] = useState('');
     const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+    const { isOpen, onOpen, onClose } = useDisclosure();
 
     useEffect(() => {
         async function fetchData() {
@@ -265,7 +277,22 @@ const GraphComponent1 = ({ department }) => {
                         flexDirection: 'column',
                         alignItems: 'center',
                     }}>
-                        
+                        <button 
+                            onClick={onOpen}
+                            style={{
+                                marginBottom: '20px',
+                                padding: '10px 20px',
+                                fontSize: '16px',
+                                color: '#fff',
+                                backgroundColor: 'blue',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                            }}
+                        >
+                            Guide
+                        </button>
                         <h3 style={{
                             color: '#333',
                             fontWeight: 'bold',
@@ -338,6 +365,27 @@ const GraphComponent1 = ({ department }) => {
                         {tooltipContent}
                     </div>
                 )}
+                
+                <Modal isOpen={isOpen} onClose={onClose} size="lg">
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Guide</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <p>Here's how to use the domain visualization tool:</p>
+                        <ol>
+                            <li>Click on a domain node in the graph to view related articles.</li>
+                            <li>Hover over nodes to see additional information.</li>
+                            <li>Use the 'Back' button to return to the previous page.</li>
+                        </ol>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme='blue' mr={3} onClick={onClose}>
+                            Close
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
             </div>
         </div>
     );

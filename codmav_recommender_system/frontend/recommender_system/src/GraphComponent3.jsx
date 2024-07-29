@@ -3,8 +3,19 @@ import cytoscape from 'cytoscape';
 import coseBilkent from 'cytoscape-cose-bilkent';
 import { Input, Select, Box, VStack, Text, Button, List, ListItem, Divider } from '@chakra-ui/react';
 import Fuse from 'fuse.js';
+import {
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalHeader,
+    ModalFooter,
+    ModalBody,
+    ModalCloseButton,
+    useDisclosure,
+} from '@chakra-ui/react';
 
 cytoscape.use(coseBilkent);
+
 
 const GraphComponent3 = ({ initialSearchQuery }) => {
     const [elements, setElements] = useState([]);
@@ -16,6 +27,7 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
     const [filteredNames, setFilteredNames] = useState([]);
     const [collaboratorCount, setCollaboratorCount] = useState(0);
     const [fuse, setFuse] = useState(null);
+    const { isOpen, onOpen, onClose } = useDisclosure();
 
     const fetchNames = async () => {
         try {
@@ -283,6 +295,22 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
                     position="relative"
                 ></Box>
                 <Box flex="1" p={4}>
+                <button 
+                            onClick={onOpen}
+                            style={{
+                                marginBottom: '20px',
+                                padding: '10px 20px',
+                                fontSize: '16px',
+                                color: '#fff',
+                                backgroundColor: 'blue',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                            }}
+                        >
+                            Guide
+                        </button>
                     <VStack spacing={4} align="stretch">
                         
                         <Text fontSize="lg" fontWeight="bold" color="#2D3748">
@@ -308,7 +336,27 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
                     </VStack>
                 </Box>
             </Box>
-        </Box>
+            <Modal isOpen={isOpen} onClose={onClose} size="lg">
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Guide</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <p>Here's how to use the Collaboration Tool:</p>
+                        <ol>
+                            <li>Select the faculty name from the dropdown.</li>
+                            <li>Click on the edges to view the collaborative articles.</li>
+                            <li>Use the 'Back' button to return to the previous page.</li>
+                        </ol>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme='blue' mr={3} onClick={onClose}>
+                            Close
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+        </Box> 
     );
 };
 

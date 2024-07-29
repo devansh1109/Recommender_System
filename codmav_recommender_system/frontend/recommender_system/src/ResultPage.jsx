@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Box, Text, Link, Divider, List, ListItem, Flex, Button, Input, ChakraProvider, extendTheme } from '@chakra-ui/react';
+import { Box, Text, Link, Divider, List, ListItem, Flex, Button, Input, ChakraProvider, extendTheme, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure } from '@chakra-ui/react';
 import GraphComponent from './GraphComponent';
 
 const ResultPage = () => {
@@ -18,6 +18,8 @@ const ResultPage = () => {
   const [collaborationCounts, setCollaborationCounts] = useState([]);
   const [searchName, setSearchName] = useState('');
   const [searchTriggered, setSearchTriggered] = useState(false);
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const selectedDepartment = departmentParam || '';
   const selectedDomain = domainParam || '';
@@ -85,27 +87,79 @@ const ResultPage = () => {
   return (
     <ChakraProvider theme={extendTheme({})}>
       <Box p="20px">
-        <Button
-          position="absolute"
-          top="17px"
-          left="20px"
-          backgroundColor="grey"
-          marginTop="137px"
-          marginRight="300px"
-          onClick={handlePrev}
+        {/* Top Button Container */}
+        <Flex
+          direction="row"
+          justifyContent="space-between"
+          position="relative"
+          mb="20px"
         >
-          Back
-        </Button>
+          {/* Back Button */}
+          <Button
+            backgroundColor="gray.500"
+            color="#fff"
+            padding="10px 20px"
+            fontSize="16px"
+            border="none"
+            borderRadius="5px"
+            cursor="pointer"
+            boxShadow="0 2px 4px rgba(0,0,0,0.2)"
+            onClick={handlePrev}
+          >
+            Back
+          </Button>
 
+          {/* Guide Button */}
+          <Button
+            backgroundColor="blue.500"
+            color="#fff"
+            padding="10px 20px"
+            fontSize="16px"
+            border="none"
+            borderRadius="5px"
+            cursor="pointer"
+            boxShadow="0 2px 4px rgba(0,0,0,0.2)"
+            onClick={onOpen}
+          >
+            Guide
+          </Button>
+        </Flex>
+
+        {/* Guide Modal */}
+        <Modal isOpen={isOpen} onClose={onClose} size="lg">
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Guide</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <p>Here's how to view domain better:</p>
+              <ol>
+                <li>Click on a faculty node or their expert id provided to view their profile.</li>
+                <li>Select a name from the dropdown to view top 5 collaborators.</li>
+                <li>Domain Experts are Faculty Members Explicitly Associated with This Field.</li>
+                <li>Contributors are the Faculty Members with Experience and Publications in This Field</li>
+                <li>Use the 'Back' button to return to the previous page.</li>
+              </ol>
+            </ModalBody>
+            <ModalFooter>
+              <Button colorScheme='blue' mr={3} onClick={onClose}>
+                Close
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* Main Title */}
         <Flex direction="column" alignItems="center" mb="20px">
           <Text fontSize="2xl" fontWeight="bold" mb="10px">
-            Faculty Members Working in {selectedDepartment.toUpperCase()} Under {selectedDomain.toUpperCase()}
+            Faculty Members Working in <i>{selectedDepartment.toUpperCase()}</i> Under <i>{selectedDomain.toUpperCase()}</i>
           </Text>
           <Text fontSize="20px" fontWeight="bold" fontStyle="italic" color="gray">
             Select a node or Expert ID to access the faculty profile.
           </Text>
         </Flex>
 
+        {/* Main Content */}
         <Flex width="100%" height="100%" direction="row">
           <Box width="30%" height="100%" display="flex" flexDirection="column" padding="20px">
             <Box
@@ -118,7 +172,7 @@ const ResultPage = () => {
               boxSizing="border-box"
             >
               <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
-                Top Collaborators by Collaboration Count
+                Top 5 Suggested Collaborators 
               </Text>
               <Divider mb="10px" />
               <Box padding="10px">
@@ -163,7 +217,7 @@ const ResultPage = () => {
               boxSizing="border-box"
             >
               <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
-                FACULTY EXPERT IN THE DOMAIN {selectedDomain.toUpperCase()}
+                {selectedDomain.toUpperCase()} Domain Expert
               </Text>
               <Text fontSize="md" textAlign="center" mb="10px">
                 Number of Faculty Members {directCount}
@@ -183,16 +237,11 @@ const ResultPage = () => {
                           >
                             {record.expertId}
                           </Link>
-                          {record.similarFaculty ? (
-                            <Text color="red.500" ml="5px">
-                              (Similar Faculty)
-                            </Text>
-                          ) : null}
                         </Text>
                       </ListItem>
                     ))
                   ) : (
-                    <ListItem>No direct results found</ListItem>
+                    <ListItem>No faculty results found</ListItem>
                   )}
                 </List>
               </Box>
@@ -208,10 +257,10 @@ const ResultPage = () => {
               boxSizing="border-box"
             >
               <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
-                Faculty with Publications in This Domain but Not Recognized as Experts:
+                {selectedDomain.toUpperCase()} Contributors
               </Text>
               <Text fontSize="md" textAlign="center" mb="10px">
-                Number of Faculty Members {indirectCount}
+                Number of Similar Faculty Members {indirectCount}
               </Text>
               <Divider mb="10px" />
               <Box maxHeight="calc(30vh - 80px)" overflowY="auto" padding="10px">
@@ -228,27 +277,28 @@ const ResultPage = () => {
                           >
                             {record.expertId}
                           </Link>
-                          {record.expertInDomain ? (
-                            <Text color="green.500" ml="5px">
-                              (Faculty Domain Expert)
-                            </Text>
-                          ) : null}
                         </Text>
                       </ListItem>
                     ))
                   ) : (
-                    <ListItem>No indirect results found</ListItem>
+                    <ListItem>No similar faculty results found</ListItem>
                   )}
                 </List>
               </Box>
             </Box>
           </Box>
 
-          <Box width="70%" height="100%" padding="20px">
-            <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
-              FACULTY DOMAIN MAPPING
-            </Text>
-            <GraphComponent domain={selectedDomain} />
+          <Box width="70%" height="100%" p="20px">
+            <GraphComponent
+              department={selectedDepartment}
+              domain={selectedDomain}
+              directRecords={directRecords}
+              indirectRecords={indirectRecords}
+              setDirectRecords={setDirectRecords}
+              setIndirectRecords={setIndirectRecords}
+              setDirectCount={setDirectCount}
+              setIndirectCount={setIndirectCount}
+            />
           </Box>
         </Flex>
       </Box>
