@@ -12,6 +12,8 @@ const GraphComponent1 = ({ department }) => {
     const [titles, setTitles] = useState([]);
     const [selectedDomainName, setSelectedDomainName] = useState('');
     const [initialDomainArticles, setInitialDomainArticles] = useState([]);
+    const [tooltipContent, setTooltipContent] = useState('');
+    const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
     useEffect(() => {
         async function fetchData() {
@@ -60,7 +62,8 @@ const GraphComponent1 = ({ department }) => {
 
     useEffect(() => {
         if (elements.length > 0) {
-            renderCytoscape(elements);
+            const cyInstance = renderCytoscape(elements);
+            setCy(cyInstance);
         }
     }, [elements]);
 
@@ -74,9 +77,9 @@ const GraphComponent1 = ({ department }) => {
             setTitles(titles);
             setSelectedDomainName(domainName);
 
-            // Adjust the view to fit the graph including newly added elements
-            cy?.fit(cy.nodes(), 10);  // Adjust the zoom level here, 10 is a zoom-out factor
-
+            if (cy) {
+                cy.fit(cy.nodes(), 10);
+            }
         } catch (error) {
             console.error('Error fetching titles:', error);
         }
@@ -91,15 +94,15 @@ const GraphComponent1 = ({ department }) => {
                     selector: 'node',
                     style: {
                         'label': 'data(label)',
-                        'width': 'mapData(count, 0, 1000, 50, 200)', // Adjust the range for width
-                        'height': 'mapData(count, 0, 1000, 50, 200)', // Adjust the range for height
+                        'width': 'mapData(count, 0, 1000, 50, 200)',
+                        'height': 'mapData(count, 0, 1000, 50, 200)',
                         'background-color': 'skyblue',
                         'color': 'black',
                         'text-valign': 'center',
                         'text-halign': 'center',
                         'font-size': 18,
                         'text-wrap': 'wrap',
-                        'text-max-width': 80,  // Set maximum width for text
+                        'text-max-width': 80,
                         'padding': 10
                     }
                 },
@@ -111,7 +114,7 @@ const GraphComponent1 = ({ department }) => {
                         'height': 40,
                         'font-size': 12,
                         'color': '#fff',
-                        'text-max-width': 120,  // Set maximum width for text
+                        'text-max-width': 120,
                         'padding': 30
                     }
                 },
@@ -119,7 +122,8 @@ const GraphComponent1 = ({ department }) => {
                     selector: 'node[type="Domain"]',
                     style: {
                         'background-color': 'skyblue',
-                        'text-max-width': 80  // Set maximum width for text
+                        'text-max-width': 80,
+                        'cursor': 'pointer'
                     }
                 },
                 {
@@ -134,7 +138,7 @@ const GraphComponent1 = ({ department }) => {
                 }
             ],
             layout: {
-                name: 'cose-bilkent', // Better layout for avoiding overlaps
+                name: 'cose-bilkent',
                 padding: 20,
                 animate: true,
                 animationDuration: 1000,
@@ -142,20 +146,38 @@ const GraphComponent1 = ({ department }) => {
             }
         });
 
-        // Center and zoom out to fit the graph on page load
-        cyInstance.fit(cyInstance.nodes(), 10);  // Adjust the zoom level here, 10 is a zoom-out factor
+        cyInstance.fit(cyInstance.nodes(), 10);
 
         cyInstance.on('tap', 'node', (event) => {
             const node = event.target;
             if (node.data('type') === 'Domain') {
                 const domainId = node.id();
                 const domainName = node.data('label');
+                setInitialDomainArticles([]);
                 fetchTitles(domainId, domainName);
             }
         });
 
-        // Update the cy state
-        setCy(cyInstance);
+        cyInstance.on('mouseover', 'node[type="Domain"]', (event) => {
+            const node = event.target;
+            setTooltipContent('Click to view articles');
+            const { x, y } = node.renderedPosition();
+            const container = document.getElementById('cy');
+            const containerRect = container.getBoundingClientRect();
+            const nodeX = x + containerRect.left;
+            const nodeY = y + containerRect.top;
+
+            setTooltipPosition({
+                x: nodeX + 20,
+                y: nodeY - 20
+            });
+        });
+
+        cyInstance.on('mouseout', 'node[type="Domain"]', () => {
+            setTooltipContent('');
+        });
+
+        return cyInstance;
     }
 
     return (
@@ -175,7 +197,7 @@ const GraphComponent1 = ({ department }) => {
                 borderRadius: '10px',
                 boxShadow: '0 4px 6px grey',
                 overflow: 'hidden',
-                position: 'relative'  // Added relative positioning for the button
+                position: 'relative'
             }}>
                 <button 
                     onClick={() => navigate(-1)} 
@@ -229,22 +251,13 @@ const GraphComponent1 = ({ department }) => {
                         flexDirection: 'column',
                         alignItems: 'center',
                     }}>
-                        <h3 style={{
-                            color: 'grey',
-                            fontWeight: 'bold',
-                            textAlign: 'center',
-                            marginBottom: '10px',
-                            fontStyle:'italic',
-                            fontSize:"20px"
-
-                        }}>
-                            Click on any domain node to view its articles.
-                        </h3>
+                        
                         <h3 style={{
                             color: '#333',
                             fontWeight: 'bold',
                             textAlign: 'center',
                             marginBottom: '10px',
+                            fontSize:"20px"
                         }}>
                             {selectedDomainName ? `Articles of ${selectedDomainName}` : 'Total Articles per Domain'}
                         </h3>
@@ -284,7 +297,7 @@ const GraphComponent1 = ({ department }) => {
                                         color: '#333',
                                         marginBottom: '10px',
                                     }}>
-                                        {domain.name}: {domain.count} articles
+                                        {`${domain.name}: ${domain.count}`}
                                     </li>
                                 ))}
                             </ol>
@@ -292,24 +305,23 @@ const GraphComponent1 = ({ department }) => {
                     </div>
                 </div>
             </div>
-            <style>
-                {`
-                ::-webkit-scrollbar {
-                    width: 12px;
-                }
-                ::-webkit-scrollbar-track {
-                    background: #f1f1f1;
-                    border-radius: 10px;
-                }
-                ::-webkit-scrollbar-thumb {
-                    background: #888;
-                    border-radius: 10px;
-                }
-                ::-webkit-scrollbar-thumb:hover {
-                    background: #555;
-                }
-                `}
-            </style>
+            {tooltipContent && (
+                <div style={{
+                    position: 'absolute',
+                    top: tooltipPosition.y,
+                    left: tooltipPosition.x,
+                    padding: '5px 10px',
+                    backgroundColor: 'black',
+                    color: 'white',
+                    borderRadius: '5px',
+                    pointerEvents: 'none',
+                    zIndex: 1000,
+                    fontSize: '14px',
+                    whiteSpace: 'nowrap'
+                }}>
+                    {tooltipContent}
+                </div>
+            )}
         </div>
     );
 };

@@ -135,7 +135,7 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
             document.body.appendChild(tooltip);
         }
 
-        tooltip.innerText = `Count: ${count}`;
+        tooltip.innerText = 'Click to view articles'; // Updated tooltip text
         tooltip.style.left = `${event.originalEvent.clientX + 5}px`;
         tooltip.style.top = `${event.originalEvent.clientY + 5}px`;
     };
@@ -264,25 +264,30 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
                 <Box flex="1" p={4} borderRadius="8px" boxShadow="md" backgroundColor="#ffffff">
                     <Box>
                         <VStack spacing={4} align="start">
-                        <Text fontSize="20px" color="Gray" fontStyle="italic" fontWeight="bold">
-                            Click on any edge to view the corresponding collaborative articles.
+                        
+                        
+                        
+                        
+                        <Text fontWeight="bold" fontSize="20px">{selectedCollaboration}</Text>
+                        <Text fontSize="16px" color="black" fontStyle="italic">
+                            Titles:
                         </Text>
-                            {selectedCollaboration && (
-                                <Box>
-                                    <Text fontWeight="bold">{selectedCollaboration}</Text>
-                                    <ul>
-                                        {titles.map(title => (
-                                            <li key={title}>{title}</li>
-                                        ))}
-                                    </ul>
-                                </Box>
-                            )}
-                            <Text>Number of unique collaborators: {collaboratorCount}</Text>
+                        {titles.length > 0 ? (
+                            <VStack spacing={2} align="start">
+                                {titles.map((title, index) => (
+                                    <Text key={index}>{title}</Text>
+                                ))}
+                            </VStack>
+                        ) : (
+                            <Text>No titles available</Text>
+                        )}
+                        <Text fontSize="15px" color="Gray" fontStyle="italic" fontWeight="bold">
+                            Collaborators: {collaboratorCount}
+                        </Text>
                         </VStack>
                     </Box>
                 </Box>
             </Box>
-
         </Box>
     );
 };
