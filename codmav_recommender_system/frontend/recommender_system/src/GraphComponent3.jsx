@@ -276,10 +276,10 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
             <Box display="flex" flex="1" overflow="hidden">
                 <Box
                     id="cy"
-                    flex="2"
-                    border="2px solid #ccc"
+                    flex="3"
+                    border="1px solid #ccc"
                     borderRadius="md"
-                    backgroundColor="rgb(224,224,224)"
+                    backgroundColor="rgb(220,220,220)"
                     position="relative"
                 ></Box>
                 <Box flex="1" p={4}>
@@ -289,12 +289,13 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
                             {selectedCollaboration && `Selected Collaboration: ${selectedCollaboration}`}
                         </Text>
                         <Divider />
+                        <Text fontSize="15px" fontStyle="italic" fontWeight='bold' mb={2}>Number of Collaborators: {collaboratorCount}</Text>
                         <Box
                             overflowY="auto"
                             maxHeight="400px"
                             border="1px solid #e2e8f0"
                             borderRadius="md"
-                            backgroundColor="rgb(220,220,220)"
+                            backgroundColor="rgb(224,224,224)"
                         >
                             <List spacing={3} p={4}>
                                 {titles.map((title, index) => (
