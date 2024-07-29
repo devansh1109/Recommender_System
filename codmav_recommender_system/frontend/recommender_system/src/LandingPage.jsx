@@ -20,7 +20,7 @@ const LandingPage = () => {
       'Data Science',
       'IoT',
       'Networks',
-      'Microprocessor',
+      'Microprocessors',
       'Microcontrollers',
       'Deep Learning',
       'Computer Vision',
