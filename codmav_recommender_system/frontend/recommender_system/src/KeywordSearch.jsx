@@ -53,12 +53,12 @@ const SearchResult = ({ result, excludeIds }) => {
           </Text>
         </HStack>
         {result.doi === 'N/A' ? (
-          <Text fontSize="sm" color="gray.500">DOI: N/A</Text>
-        ) : (
-          <Text fontSize="sm" color="blue.500">
-            DOI: <a href={result.doi} target="_blank" rel="noopener noreferrer">{result.doi}</a>
-          </Text>
-        )}
+  <Text fontSize="sm" color="gray.500">DOI: N/A</Text>
+) : (
+  <Text fontSize="sm" color="blue.500">
+    DOI: <a href={`https://doi.org/${result.doi}`} target="_blank" rel="noopener noreferrer">{result.doi}</a>
+  </Text>
+)}
       </VStack>
       <HStack justify="space-between" mt="2">
         <Box></Box>
@@ -94,10 +94,10 @@ const SearchResult = ({ result, excludeIds }) => {
                   </Text>
                 </HStack>
                 {similar.doi !== 'N/A' && (
-                  <Text fontSize="xs" color="blue.500">
-                    DOI: <a href={similar.doi} target="_blank" rel="noopener noreferrer">{similar.doi}</a>
-                  </Text>
-                )}
+  <Text fontSize="xs" color="blue.500">
+    DOI: <a href={`https://doi.org/${similar.doi}`} target="_blank" rel="noopener noreferrer">{similar.doi}</a>
+  </Text>
+)}
               </Box>
             ))
           )}

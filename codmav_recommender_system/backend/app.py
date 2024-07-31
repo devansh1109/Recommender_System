@@ -130,7 +130,7 @@ def update_search_indices():
     bm25 = BM25Okapi(tokenized_corpus)
 
 def comprehensive_search(query, page=1, limit=20):
-    global tfidf, tfidf_matrix, bm25, corpus, search_cache
+    global tfidf, tfidf_matrix, bm25, corpus, search_cache, sentence_model, embeddings
     
     if tfidf is None or tfidf_matrix is None or bm25 is None or corpus is None:
         update_search_indices()
@@ -145,15 +145,23 @@ def comprehensive_search(query, page=1, limit=20):
     
     preprocessed_query = preprocess_text(query)
     
+    # TF-IDF
     query_tfidf = tfidf.transform([preprocessed_query])
     tfidf_similarities = cosine_similarity(query_tfidf, tfidf_matrix).flatten()
     
+    # BM25
     bm25_scores = np.array(bm25.get_scores(preprocessed_query.split()))
     
+    # Sentence Transformer and Semantic Search
     query_embedding = sentence_model.encode([preprocessed_query])[0]
-    st_similarities = cosine_similarity([query_embedding], embeddings).flatten()
+    semantic_similarities = cosine_similarity([query_embedding], embeddings).flatten()
     
-    combined_scores = 0.35 * tfidf_similarities + 0.35 * bm25_scores + 0.3 * st_similarities
+    # Combine scores
+    combined_scores = (
+        0.25 * tfidf_similarities +
+        0.25 * bm25_scores +
+        0.5 * semantic_similarities
+    )
     
     max_score = np.max(combined_scores)
     normalized_scores = combined_scores / max_score if max_score > 0 else combined_scores
@@ -168,7 +176,7 @@ def comprehensive_search(query, page=1, limit=20):
             'author': metadata[idx]['personName'],
             'co_authors': metadata[idx]['co_authors'],
             'year': int(str(metadata[idx]['year']).split('.')[0]),
-            'doi': metadata[idx]['doi'],
+            'doi': format_doi(metadata[idx]['doi']),
             'score': float(normalized_scores[idx])
         }
         for idx in sorted_indices[len(cache_entry['results']):]
@@ -184,15 +192,26 @@ def comprehensive_search(query, page=1, limit=20):
 
 @lru_cache(maxsize=1000)
 def get_similar_papers(paper_id, n_results=5, exclude_ids=None):
+    global embeddings, metadata
+    
     if exclude_ids is None:
         exclude_ids = set()
     else:
         exclude_ids = set(exclude_ids)
 
     paper_embedding = embeddings[paper_id]
-    similarities = cosine_similarity([paper_embedding], embeddings).flatten()
     
-    sorted_indices = np.argsort(similarities)[::-1]
+    # Semantic similarity
+    semantic_similarities = cosine_similarity([paper_embedding], embeddings).flatten()
+    
+    # TF-IDF similarity
+    paper_tfidf = tfidf_matrix[paper_id]
+    tfidf_similarities = cosine_similarity(paper_tfidf, tfidf_matrix).flatten()
+    
+    # Combine scores
+    combined_scores = 0.7 * semantic_similarities + 0.3 * tfidf_similarities
+    
+    sorted_indices = np.argsort(combined_scores)[::-1]
     filtered_indices = [idx for idx in sorted_indices if idx != paper_id and idx not in exclude_ids]
     
     results = [
@@ -203,8 +222,8 @@ def get_similar_papers(paper_id, n_results=5, exclude_ids=None):
             'author': metadata[idx]['personName'],
             'co_authors': metadata[idx]['co_authors'],
             'year': int(str(metadata[idx]['year']).split('.')[0]),
-            'doi': metadata[idx]['doi'],
-            'score': float(similarities[idx])
+            'doi': format_doi(metadata[idx]['doi']),
+            'score': float(combined_scores[idx])
         }
         for idx in filtered_indices[:n_results]
     ]

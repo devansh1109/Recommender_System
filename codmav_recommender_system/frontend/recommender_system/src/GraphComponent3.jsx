@@ -312,21 +312,38 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
                 <Box id="color-range-bar" position="absolute" top="575px" right="10px" display="flex" flexDirection="column"></Box>
 
                 {titles.length > 0 && (
-                    <Box>
-                        <Divider my={4} />
-                        <Heading as="h2" size="md" mb={2}>{selectedCollaboration}</Heading>
-                        <List spacing={3}>
-                            {titles.map((title, index) => (
-                                <ListItem key={index}>
-                                    <ol>
-                                        <Text fontSize="lg">{title}</Text>
-                                    </ol>
-                                    
-                                </ListItem>
-                            ))}
-                        </List>
-                    </Box>
-                )}
+    <Box 
+        borderWidth="1px" 
+        borderRadius="lg" 
+        p={6} 
+        boxShadow="md" 
+        bg="white" 
+        width="100%"
+        maxWidth="800px"
+        margin="auto"
+    >
+        <Heading as="h2" size="lg" mb={4} textAlign="center" color="blue.600">
+            {selectedCollaboration}
+        </Heading>
+        <Divider mb={4} />
+        <List spacing={4}>
+            {titles.map((title, index) => (
+                <ListItem 
+                    key={index} 
+                    p={3} 
+                    bg="gray.50" 
+                    borderRadius="md" 
+                    _hover={{ bg: "gray.100" }}
+                    transition="background-color 0.2s"
+                >
+                    <Text fontSize="md" fontWeight="medium">
+                        {index + 1}. {title}
+                    </Text>
+                </ListItem>
+            ))}
+        </List>
+    </Box>
+)}
             </VStack>
         </Box>
     );
