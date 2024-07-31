@@ -9,6 +9,15 @@ import {
   Button,
   VStack,
   Select,
+  Flex,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
 } from '@chakra-ui/react';
 
 const CollaborationGraph = () => {
@@ -20,6 +29,7 @@ const CollaborationGraph = () => {
   const searchParams = new URLSearchParams(location.search);
   const department = searchParams.get('department');
   const navigate = useNavigate();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const fetchNames = async () => {
     try {
@@ -50,17 +60,17 @@ const CollaborationGraph = () => {
     navigate(-1);
   };
 
-
   return (
     <ChakraProvider>
       <Box p={5}>
-        <Button
-          backgroundColor="grey"
-          onClick={handlePrev}
-          style={{ marginBottom: '20px' }}
-        >
-          Back
-        </Button>
+        <Flex justifyContent="space-between" alignItems="center" mb={4}>
+          <Button backgroundColor="grey" onClick={handlePrev}>
+            Back
+          </Button>
+          <Button onClick={onOpen} backgroundColor="rgb(0, 158, 96)" color="white">
+            Guide
+          </Button>
+        </Flex>
         <Heading mb={4}>Collaboration Network for {department}</Heading>
         <Text mb={4}>Enter a person's name to view their collaboration network:</Text>
         <form onSubmit={handleSearch}>
@@ -82,6 +92,36 @@ const CollaborationGraph = () => {
           </VStack>
         </form>
         {showGraph && <GraphComponent3 initialSearchQuery={searchQuery} />}
+
+        <Modal isOpen={isOpen} onClose={onClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Guide</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+            <Text>
+                                Here are some instructions or guidance on how to use this collaboration tool.
+                            </Text>
+                            <Text mt={4}>
+                                1. Use the dropdown to select a person.
+                            </Text>
+                            <Text>
+                                2. The graph will update to show collaborators and their articles.
+                            </Text>
+                            <Text>
+                                3. Click on an edge to see the titles of articles for that collaboration.
+                            </Text>
+                            <Text>
+                                4. Hover over the color range bar to see the strength of collaboration associated with each color.
+                            </Text>
+            </ModalBody>
+            <ModalFooter>
+              <Button colorScheme="blue" mr={3} onClick={onClose}>
+                Close
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
       </Box>
     </ChakraProvider>
   );

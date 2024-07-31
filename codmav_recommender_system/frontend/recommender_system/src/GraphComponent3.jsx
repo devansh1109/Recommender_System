@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import cytoscape from 'cytoscape';
 import coseBilkent from 'cytoscape-cose-bilkent';
-import { Input, Select, Box, VStack, Text, Button, List, ListItem, Divider } from '@chakra-ui/react';
+import { Input, Select, Box, VStack, Text, Button, List, ListItem, Divider, Heading } from '@chakra-ui/react';
 import Fuse from 'fuse.js';
 import {
     Modal,
@@ -15,7 +15,6 @@ import {
 } from '@chakra-ui/react';
 
 cytoscape.use(coseBilkent);
-
 
 const GraphComponent3 = ({ initialSearchQuery }) => {
     const [elements, setElements] = useState([]);
@@ -204,6 +203,26 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
         });
     };
 
+    const updateColorRangeBar = (edges) => {
+        const minCount = Math.min(...edges.map(edge => edge.data('count')));
+        const maxCount = Math.max(...edges.map(edge => edge.data('count')));
+
+        const colorRangeBar = document.getElementById('color-range-bar');
+        if (colorRangeBar) {
+            colorRangeBar.innerHTML = '';
+
+            for (let i = minCount; i <= maxCount; i++) {
+                const color = calculateColor(i);
+                const colorBlock = document.createElement('div');
+                colorBlock.style.width = '20px';
+                colorBlock.style.height = '20px';
+                colorBlock.style.backgroundColor = color;
+                colorBlock.title = i;
+                colorRangeBar.appendChild(colorBlock);
+            }
+        }
+    };
+
     const renderCytoscape = (elements) => {
         const cyInstance = cytoscape({
             container: document.getElementById('cy'),
@@ -252,20 +271,18 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
             ],
             layout: {
                 name: 'cose-bilkent',
-                padding: 20,
-                animate: true,
-                animationDuration: 1000,
-                nodeDimensionsIncludeLabels: true
+                animate: false,
+                nodeRepulsion: 10000,
+                idealEdgeLength: 100
             }
         });
-
-        cyInstance.fit(cyInstance.nodes(), 10);
 
         cyInstance.on('tap', 'edge', handleEdgeClick);
         cyInstance.on('mouseover', 'edge', handleEdgeMouseover);
         cyInstance.on('mouseout', 'edge', handleEdgeMouseout);
 
         updateNodeColors(cyInstance);
+        updateColorRangeBar(cyInstance.edges());
 
         setCy(cyInstance);
     };
@@ -277,86 +294,41 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
     }, [elements]);
 
     return (
-        <Box
-            display="flex"
-            flexDirection="column"
-            height="100vh"
-            width="100vw"
-            backgroundColor="#f0f4f8"
-            p={4}
-        >
-            <Box display="flex" flex="1" overflow="hidden">
-                <Box
-                    id="cy"
-                    flex="3"
-                    border="1px solid #ccc"
-                    borderRadius="md"
-                    backgroundColor="rgb(220,220,220)"
-                    position="relative"
-                ></Box>
-                <Box flex="1" p={4}>
-                <button 
-                            onClick={onOpen}
-                            style={{
-                                marginBottom: '20px',
-                                padding: '10px 20px',
-                                fontSize: '16px',
-                                color: '#fff',
-                                backgroundColor: 'blue',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                            }}
-                        >
-                            Guide
-                        </button>
-                    <VStack spacing={4} align="stretch">
-                        
-                        <Text fontSize="lg" fontWeight="bold" color="#2D3748">
-                            {selectedCollaboration && `Selected Collaboration: ${selectedCollaboration}`}
-                        </Text>
-                        <Divider />
-                        <Text fontSize="15px" fontStyle="italic" fontWeight='bold' mb={2}>Number of Collaborators: {collaboratorCount}</Text>
-                        <Box
-                            overflowY="auto"
-                            maxHeight="400px"
-                            border="1px solid #e2e8f0"
-                            borderRadius="md"
-                            backgroundColor="rgb(224,224,224)"
-                        >
-                            <List spacing={3} p={4}>
-                                {titles.map((title, index) => (
-                                    <ListItem key={index} p={3} borderWidth="1px" borderRadius="md" borderColor="#e2e8f0" backgroundColor="#edf2f7">
-                                        <Text fontSize="md" color="#2D3748">{title}</Text>
-                                    </ListItem>
-                                ))}
-                            </List>
-                        </Box>
-                    </VStack>
-                </Box>
-            </Box>
-            <Modal isOpen={isOpen} onClose={onClose} size="lg">
-                <ModalOverlay />
-                <ModalContent>
-                    <ModalHeader>Guide</ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody>
-                        <p>Here's how to use the Collaboration Tool:</p>
-                        <ol>
-                            <li>Select the faculty name from the dropdown.</li>
-                            <li>Click on the edges to view the collaborative articles.</li>
-                            <li>Use the 'Back' button to return to the previous page.</li>
-                        </ol>
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button colorScheme='blue' mr={3} onClick={onClose}>
-                            Close
-                        </Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
-        </Box> 
+        <Box p={4}>
+            <VStack spacing={4}>
+                
+
+                {collaboratorCount > 0 && (
+                    <Box textAlign="center" mt={2}>
+                        <Text fontSize="lg" fontWeight="bold">Number of Collaborators: {collaboratorCount}</Text>
+                    </Box>
+                )}
+
+                
+                
+
+                <Box id="cy" width="100%" height="600px" border="1px solid black" />
+
+                <Box id="color-range-bar" position="absolute" top="575px" right="10px" display="flex" flexDirection="column"></Box>
+
+                {titles.length > 0 && (
+                    <Box>
+                        <Divider my={4} />
+                        <Heading as="h2" size="md" mb={2}>{selectedCollaboration}</Heading>
+                        <List spacing={3}>
+                            {titles.map((title, index) => (
+                                <ListItem key={index}>
+                                    <ol>
+                                        <Text fontSize="lg">{title}</Text>
+                                    </ol>
+                                    
+                                </ListItem>
+                            ))}
+                        </List>
+                    </Box>
+                )}
+            </VStack>
+        </Box>
     );
 };
 

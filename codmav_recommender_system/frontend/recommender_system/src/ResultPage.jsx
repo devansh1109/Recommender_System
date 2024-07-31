@@ -111,7 +111,7 @@ const ResultPage = () => {
 
           {/* Guide Button */}
           <Button
-            backgroundColor="blue.500"
+            backgroundColor="rgb(0, 158, 96)"
             color="#fff"
             padding="10px 20px"
             fontSize="16px"

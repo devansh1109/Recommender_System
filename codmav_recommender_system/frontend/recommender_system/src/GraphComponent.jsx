@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import cytoscape from 'cytoscape';
 import coseBilkent from 'cytoscape-cose-bilkent'; // Import the Cytoscape cose-bilkent layout extension
+import { Box, IconButton, VStack, Text, HStack } from '@chakra-ui/react';
+import { AddIcon, MinusIcon } from '@chakra-ui/icons';
 
 // Register cose-bilkent layout extension
 cytoscape.use(coseBilkent);
@@ -144,8 +146,49 @@ const GraphComponent = ({ domain }) => {
     }
   }, [elements]);
 
+  const handleZoomIn = () => {
+    if (cyRef.current) {
+      cyRef.current.zoom(cyRef.current.zoom() * 1.2);
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (cyRef.current) {
+      cyRef.current.zoom(cyRef.current.zoom() * 0.8);
+    }
+  };
+
   return (
-    <div ref={containerRef} id="cy" style={{ height: '600px' }}></div>
+    <Box position="relative">
+      <Box ref={containerRef} id="cy" style={{ height: '600px' }}></Box>
+      <Box position="absolute" top="10px" right="10px" bg="white" p="4" borderRadius="md" boxShadow="md">
+        <VStack align="start">
+          <HStack>
+            <Box width="20px" height="20px" bg="#7DFF33" borderRadius="sm" />
+            <Text>EXPERT_IN_DIRECT</Text>
+          </HStack>
+          <HStack>
+            <Box width="20px" height="20px" bg="#f00" borderRadius="sm" />
+            <Text>EXPERT_IN_INDIRECT</Text>
+          </HStack>
+        </VStack>
+      </Box>
+      <Box position="absolute" bottom="10px" right="10px">
+        <VStack>
+          <IconButton
+            icon={<AddIcon />}
+            onClick={handleZoomIn}
+            aria-label="Zoom In"
+            mb="2"
+          />
+          <IconButton
+            icon={<MinusIcon />}
+            onClick={handleZoomOut}
+            aria-label="Zoom Out"
+          />
+        </VStack>
+      </Box>
+    </Box>
   );
 };
 

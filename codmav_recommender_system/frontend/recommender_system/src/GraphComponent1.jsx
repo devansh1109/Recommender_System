@@ -12,7 +12,7 @@ import {
     ModalCloseButton,
     Button,
     useDisclosure,
-  } from '@chakra-ui/react';
+} from '@chakra-ui/react';
 
 cytoscape.use(coseBilkent);
 
@@ -112,7 +112,7 @@ const GraphComponent1 = ({ department }) => {
                         'color': 'black',
                         'text-valign': 'center',
                         'text-halign': 'center',
-                        'font-size': 18,
+                        'font-size': 11,
                         'text-wrap': 'wrap',
                         'text-max-width': 80,
                         'padding': 10
@@ -121,7 +121,7 @@ const GraphComponent1 = ({ department }) => {
                 {
                     selector: 'node[type="Department"]',
                     style: {
-                        'background-color': '#1f77b4',
+                        'background-color': 'rgb(25, 25, 112)',
                         'width': 40,
                         'height': 40,
                         'font-size': 12,
@@ -142,7 +142,7 @@ const GraphComponent1 = ({ department }) => {
                 {
                     selector: 'node[type="Domain"].hover',
                     style: {
-                        'background-color': 'rgb(115, 147, 179)', // Change to the color you want on hover
+                        'background-color': 'rgb(70, 130, 180)', // Change to the color you want on hover
                         'border-width': 2,
                         'border-color': 'rgb(70, 130, 180)'
                     }
@@ -205,7 +205,7 @@ const GraphComponent1 = ({ department }) => {
     
         return cyInstance;
     }
-    
+
     return (
         <div style={{
             display: 'flex',
@@ -225,24 +225,45 @@ const GraphComponent1 = ({ department }) => {
                 overflow: 'hidden',
                 position: 'relative'
             }}>
-                <button 
-                    onClick={() => navigate(-1)} 
-                    style={{
-                        position: 'absolute',
-                        top: '10px',
-                        left: '10px',
-                        padding: '10px 20px',
-                        fontSize: '16px',
-                        color: '#fff',
-                        backgroundColor: 'grey',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                    }}
-                >
-                    Back
-                </button>
+                <div style={{
+                    position: 'absolute',
+                    top: '10px',
+                    left: '10px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    width: 'calc(100% - 20px)', // Adjust width to account for button space
+                }}>
+                    <button 
+                        onClick={() => navigate(-1)} 
+                        style={{
+                            padding: '10px 20px',
+                            fontSize: '16px',
+                            color: '#fff',
+                            backgroundColor: 'grey',
+                            border: 'none',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                        }}
+                    >
+                        Back
+                    </button>
+                    <button 
+                        onClick={onOpen}
+                        style={{
+                            padding: '10px 20px',
+                            fontSize: '16px',
+                            color: '#fff',
+                            backgroundColor: 'rgb(0, 158, 96)',
+                            border: 'none',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                        }}
+                    >
+                        Guide
+                    </button>
+                </div>
                 <h1 style={{
                     color: '#333',
                     fontSize: '2.5rem',
@@ -277,22 +298,6 @@ const GraphComponent1 = ({ department }) => {
                         flexDirection: 'column',
                         alignItems: 'center',
                     }}>
-                        <button 
-                            onClick={onOpen}
-                            style={{
-                                marginBottom: '20px',
-                                padding: '10px 20px',
-                                fontSize: '16px',
-                                color: '#fff',
-                                backgroundColor: 'blue',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                            }}
-                        >
-                            Guide
-                        </button>
                         <h3 style={{
                             color: '#333',
                             fontWeight: 'bold',
@@ -365,27 +370,26 @@ const GraphComponent1 = ({ department }) => {
                         {tooltipContent}
                     </div>
                 )}
-                
-                <Modal isOpen={isOpen} onClose={onClose} size="lg">
-                <ModalOverlay />
-                <ModalContent>
-                    <ModalHeader>Guide</ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody>
+                <Modal isOpen={isOpen} onClose={onClose}>
+                    <ModalOverlay />
+                    <ModalContent>
+                        <ModalHeader>Guide</ModalHeader>
+                        <ModalCloseButton />
+                        <ModalBody>
                         <p>Here's how to use the domain visualization tool:</p>
                         <ol>
                             <li>Click on a domain node in the graph to view related articles.</li>
                             <li>Hover over nodes to see additional information.</li>
                             <li>Use the 'Back' button to return to the previous page.</li>
                         </ol>
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button colorScheme='blue' mr={3} onClick={onClose}>
-                            Close
-                        </Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
+                        </ModalBody>
+                        <ModalFooter>
+                            <Button colorScheme="blue" onClick={onClose}>
+                                Close
+                            </Button>
+                        </ModalFooter>
+                    </ModalContent>
+                </Modal>
             </div>
         </div>
     );
