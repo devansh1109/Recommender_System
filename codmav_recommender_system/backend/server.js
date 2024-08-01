@@ -42,12 +42,27 @@ app.get('/api/top-collaborators', async (req, res) => {
   const session = driver.session();
   try {
     const query = `
-      MATCH (t:Title)<-[:WRITES]-(p2:Person)-[:EXPERT_IN_DIRECT]->(d:Domain {name: $domainName})-[:HAS_ARTICLE]->(t)
-      OPTIONAL MATCH (p1:Person {name: $personName})-[r:COLLABORATION]-(p2)
+      // Finding the maximum title count in the domain
+      MATCH (t:Title)<-[:WRITES]-(p2:Person)-[:EXPERT_IN_DIRECT]->(d:Domain {name:$domainName})-[:HAS_ARTICLE]->(t)
+      WITH p2, COUNT(t) AS titleCount
+      ORDER BY titleCount DESC
+      LIMIT 1
+      WITH COALESCE(titleCount, 0) AS maxTitleCount
+
+      // Finding the maximum collaboration count with the specified person
+      MATCH (p1:Person {name:$personName})-[r:COLLABORATION]-(p2:Person)
+      WITH p1, COALESCE(COUNT(r), 0) AS maxCollaborations, maxTitleCount
+      ORDER BY maxCollaborations DESC
+      LIMIT 1
+
+      // Main query to retrieve collaborators and calculate the score
+      MATCH (t:Title)<-[:WRITES]-(p2:Person)-[:EXPERT_IN_DIRECT]->(d:Domain {name:$domainName})-[:HAS_ARTICLE]->(t)
+      OPTIONAL MATCH (p1:Person {name:$personName})-[r:COLLABORATION]-(p2)
       WHERE p2.name <> p1.name
-      WITH p1, p2, COALESCE(COUNT(r), 0) AS collaborations, COALESCE(COUNT(t), 0) AS titleCount
-      WITH p1, p2, collaborations, titleCount, (0.7 * titleCount + 0.3 * collaborations) AS score
-      RETURN p1.name AS personName, p2.name AS collaboratorName, collaborations, titleCount, score
+      WITH maxTitleCount, maxCollaborations, p1, p2, COALESCE(COUNT(r), 0) AS collaborations, COALESCE(COUNT(t), 0) AS titleCount1
+      WITH p1, p2, collaborations, titleCount1, maxTitleCount, maxCollaborations,
+           (0.7 * (titleCount1 * 1.0 / CASE WHEN maxTitleCount = 0 THEN 1 ELSE maxTitleCount END) + 0.3 * (collaborations * 1.0 / CASE WHEN maxCollaborations = 0 THEN 1 ELSE maxCollaborations END)) AS score
+      RETURN p1.name AS personName, p2.name AS collaboratorName, collaborations, titleCount1, score
       ORDER BY score DESC
       LIMIT 5;
     `;
@@ -65,7 +80,7 @@ app.get('/api/top-collaborators', async (req, res) => {
       personName: record.get('personName'),
       collaboratorName: record.get('collaboratorName') || null,
       collaborations: toNumber(record.get('collaborations')),
-      titleCount: toNumber(record.get('titleCount')),
+      titleCount: toNumber(record.get('titleCount1')),
       score: toNumber(record.get('score'))
     }));
 
@@ -77,7 +92,7 @@ app.get('/api/top-collaborators', async (req, res) => {
         personName, // Add only the person's name
         collaboratorName: null,
         collaborations: 0,
-        titleCount: 0,
+        titleCount: 0,  // Change to 'titleCount' to match the returned value
         score: 0
       });
     }
@@ -193,10 +208,9 @@ app.post('/api/query', async (req, res) => {
 
   try {
     const directQuery = `
-      MATCH (p:Person { Department: $department })
+      MATCH (p:Person { Department: $department })-[:EXPERT_IN_DIRECT]->(d:Domain{name:$domain})
       WHERE p.domain IS NOT NULL
         AND p.name IS NOT NULL 
-        AND ANY(domain IN p.domain WHERE trim(domain) = $domain)
       RETURN p.name AS name, p.domain AS domains, toInteger(p.expertid) AS expertId;
     `;
     

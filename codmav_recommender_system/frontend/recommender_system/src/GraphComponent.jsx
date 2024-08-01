@@ -165,11 +165,11 @@ const GraphComponent = ({ domain }) => {
         <VStack align="start">
           <HStack>
             <Box width="20px" height="20px" bg="#7DFF33" borderRadius="sm" />
-            <Text>EXPERT_IN_DIRECT</Text>
+            <Text>DOMAIN EXPERT</Text>
           </HStack>
           <HStack>
             <Box width="20px" height="20px" bg="#f00" borderRadius="sm" />
-            <Text>EXPERT_IN_INDIRECT</Text>
+            <Text>DOMAIN CONTRIBUTORS</Text>
           </HStack>
         </VStack>
       </Box>

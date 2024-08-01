@@ -35,9 +35,20 @@ const LandingPage = () => {
     'Department of Electrical and Electronics Engineering': [],
     'Department of Biotechnology': [],
     'Department of Civil Engineering': [],
-    'Department of Science and Humanities': [],
+    'Department of Science and Humanities': ['Advanced Materials',
+      'Fluid Dynamics',
+      'Geometric Function Theory',
+      'Graph Theory',
+      'Operations Research',
+      'Quantum and Nano Devices/ Quantum Computing',
+      'Materials and Manufacturing'],
     'Faculty of Commerce and Management': [],
-    'Faculty of Pharmaceutical Sciences': [],
+    'Faculty of Pharmaceutical Sciences': ['Pharmaceutical Chemistry', 
+      'Pharmaceutics',	
+      'Pharmacology',	
+      'Pharmacognosy', 	
+      'Pharmaceutical Analysis',
+      'Pharmacy Practice'],
     'Department of MCA': [],
     'Department of MBA': [],
     'Faculty of Law': [],
@@ -209,7 +220,7 @@ const LandingPage = () => {
             MILAAP
           </Text>
           <Text fontSize="2xl" color="white">
-            One Stop Destination for Like-Minded Researchers
+            Research Collaboration Tool
           </Text>
         </Box>
 

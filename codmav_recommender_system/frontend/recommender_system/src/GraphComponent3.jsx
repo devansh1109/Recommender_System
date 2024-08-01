@@ -136,6 +136,7 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
             const { titles } = await response.json();
             setTitles(titles);
             setSelectedCollaboration(`Collaboration between ${edge.source().data('label')} and ${edge.target().data('label')}`);
+            onOpen(); // Open modal when a collaboration is selected
         } catch (error) {
             console.error('Error fetching titles for collaboration:', error);
         }
@@ -265,7 +266,6 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
                         'target-arrow-shape': 'triangle',
                         'curve-style': 'bezier',
                         'text-rotation': 'autorotate',
-                        'label': 'data(count)'
                     }
                 }
             ],
@@ -294,56 +294,38 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
     }, [elements]);
 
     return (
-        <Box p={4}>
+        <Box>
             <VStack spacing={4}>
-                
 
-                {collaboratorCount > 0 && (
-                    <Box textAlign="center" mt={2}>
-                        <Text fontSize="lg" fontWeight="bold">Number of Collaborators: {collaboratorCount}</Text>
-                    </Box>
+                <Box id="cy" style={{ width: '100%', height: '500px', border: '1px solid #ddd' }}></Box>
+
+                <Box id="color-range-bar" style={{ display: 'flex', flexDirection: 'row', marginTop: '10px' }}></Box>
+
+                <Text fontSize="lg" fontWeight="bold">Number of Collaborators: {collaboratorCount}</Text>
+                <Text fontSize="md" fontWeight="bold">Selected Collaboration: {selectedCollaboration}</Text>
+
+                {selectedCollaboration && (
+                    <Modal isOpen={isOpen} onClose={onClose}>
+                        <ModalOverlay />
+                        <ModalContent>
+                            <ModalHeader>{selectedCollaboration}</ModalHeader>
+                            <ModalCloseButton />
+                            <ModalBody>
+                                <Heading size="md">Titles:</Heading>
+                                <List spacing={3}>
+                                    {titles.map((title, index) => (
+                                        <ListItem key={index}>{title}</ListItem>
+                                    ))}
+                                </List>
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button colorScheme="blue" mr={3} onClick={onClose}>
+                                    Close
+                                </Button>
+                            </ModalFooter>
+                        </ModalContent>
+                    </Modal>
                 )}
-
-                
-                
-
-                <Box id="cy" width="100%" height="600px" border="1px solid black" />
-
-                <Box id="color-range-bar" position="absolute" top="575px" right="10px" display="flex" flexDirection="column"></Box>
-
-                {titles.length > 0 && (
-    <Box 
-        borderWidth="1px" 
-        borderRadius="lg" 
-        p={6} 
-        boxShadow="md" 
-        bg="white" 
-        width="100%"
-        maxWidth="800px"
-        margin="auto"
-    >
-        <Heading as="h2" size="lg" mb={4} textAlign="center" color="blue.600">
-            {selectedCollaboration}
-        </Heading>
-        <Divider mb={4} />
-        <List spacing={4}>
-            {titles.map((title, index) => (
-                <ListItem 
-                    key={index} 
-                    p={3} 
-                    bg="gray.50" 
-                    borderRadius="md" 
-                    _hover={{ bg: "gray.100" }}
-                    transition="background-color 0.2s"
-                >
-                    <Text fontSize="md" fontWeight="medium">
-                        {index + 1}. {title}
-                    </Text>
-                </ListItem>
-            ))}
-        </List>
-    </Box>
-)}
             </VStack>
         </Box>
     );
