@@ -135,7 +135,7 @@ const LandingPage = () => {
   };
 
   const handleNavigateToDomainVisualization = () => {
-    navigate(`/DomainVisualization/${encodeURIComponent(visualizationDepartment)}`);
+    navigate(`/DomainVisualization?department=${encodeURIComponent(visualizationDepartment)}`);
   };
 
   const handleNavigateToCollaborations = () => {

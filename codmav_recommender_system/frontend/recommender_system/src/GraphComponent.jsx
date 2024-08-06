@@ -70,13 +70,13 @@ const GraphComponent = ({ domain }) => {
             selector: 'node[type="Person"]',
             style: {
               'label': 'data(label)',
-              'width': 100,
-              'height': 100,
+              'width': 250,
+              'height': 250,
               'background-color': 'gold',
               'color': 'black',
               'text-valign': 'center',
               'text-halign': 'center',
-              'font-size': 20,
+              'font-size': 45,
               'text-wrap': 'wrap',
               'text-max-width': 100,
               'padding': '30px'
@@ -86,13 +86,13 @@ const GraphComponent = ({ domain }) => {
             selector: 'node[type="Domain"]',
             style: {
               'label': 'data(label)',
-              'width': 250,
-              'height': 250,
+              'width': 400,
+              'height': 400,
               'background-color': 'gray',
               'color': '#fff',
               'text-valign': 'center',
               'text-halign': 'center',
-              'font-size': 42,
+              'font-size': 49,
               'text-wrap': 'wrap',
               'text-max-width': 100,
               'padding': '10px',
@@ -103,8 +103,8 @@ const GraphComponent = ({ domain }) => {
           {
             selector: 'edge[label="EXPERT_IN_DIRECT"]',
             style: {
-              'width': 3,
-              'line-color': '#7DFF33',
+              'width': 5,
+              'line-color': 'rgb(76, 187, 23)',
               'target-arrow-color': '#00f',
               'target-arrow-shape': 'triangle',
               'curve-style': 'bezier',
@@ -114,7 +114,7 @@ const GraphComponent = ({ domain }) => {
           {
             selector: 'edge[label="EXPERT_IN_INDIRECT"]',
             style: {
-              'width': 3,
+              'width': 5,
               'line-color': '#f00',
               'target-arrow-color': '#f00',
               'target-arrow-shape': 'triangle',

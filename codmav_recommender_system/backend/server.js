@@ -352,14 +352,20 @@ app.get('/api/collaboration/:collaborationId/titles', async (req, res) => {
 // New endpoint: Get graph data for a selected department
 app.get('/api/graph/:department', async (req, res) => {
   const departmentName = req.params.department;
+  console.log('Fetching data for department:', departmentName); // Log the parameter
+
+  if (!departmentName) {
+    return res.status(400).json({ error: 'Department parameter is required' });
+  }
+
   const session = driver.session();
   try {
     const query = `
-      MATCH (d:Department {Department: "Department of Computer Science Engineering"})-[:CONTAINS]->(dom:Domain)
+      MATCH (d:Department {Department: $department})-[:CONTAINS]->(dom:Domain)
       OPTIONAL MATCH (dom)-[:HAS_ARTICLE]->(t:Title)
       RETURN d, dom, count(t) as articleCount
     `;
-    const result = await session.run(query, { departmentName });
+    const result = await session.run(query, { department: departmentName });
 
     const nodes = [];
     const edges = [];
@@ -392,6 +398,9 @@ app.get('/api/graph/:department', async (req, res) => {
     await session.close();
   }
 });
+
+
+
 
 // New endpoint: Get titles for a specific domain
 app.get('/api/titles/:domainId', async (req, res) => {

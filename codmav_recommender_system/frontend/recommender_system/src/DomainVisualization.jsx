@@ -3,33 +3,52 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Text, Button, Spinner, Alert, AlertIcon } from '@chakra-ui/react';
 import GraphComponent1 from './GraphComponent1';
 
-const DomainVisualization = () => {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [domainData, setDomainData] = useState(null);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch('http://localhost:8080/api/graph/Department of Computer Science Engineering');
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+
+
+  const DomainVisualization = () => {
+    const location = useLocation();
+    const [elements, setElements] = useState([]);
+    const [error, setError] = useState(null); // Add an error state for better debugging
+  
+    useEffect(() => {
+      const fetchGraphData = async (department) => {
+        try {
+          const response = await fetch(`/api/graph/${encodeURIComponent(department)}`);
+          const data = await response.json();
+  
+          if (response.ok) {
+            const nodes = data.nodes.map(node => ({
+              data: { id: node.id, label: node.label, type: node.type, count: node.count },
+              classes: node.type.toLowerCase()
+            }));
+  
+            const edges = data.edges.map(edge => ({
+              data: { id: edge.id, source: edge.source, target: edge.target, label: edge.label }
+            }));
+  
+            setElements([...nodes, ...edges]);
+          } else {
+            setError('Failed to fetch data');
+            console.error('Failed to fetch data:', data);
+          }
+        } catch (error) {
+          setError('Error fetching data');
+          console.error('Error fetching data:', error);
+        }
+      };
+  
+      const params = new URLSearchParams(location.search);
+      const department = params.get('department');
+      
+      if (department) {
+        fetchGraphData(department);
+      } else {
+        setError('Department parameter is missing');
+        console.error('Department parameter is missing');
       }
-      const data = await response.json();
-      setDomainData(data);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      setError(`Failed to fetch data: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+    }, [location.search]);
 
   const handleBackClick = () => {
     navigate('/');

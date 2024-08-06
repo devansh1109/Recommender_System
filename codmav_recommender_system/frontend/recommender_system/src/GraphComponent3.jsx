@@ -233,13 +233,13 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
                     selector: 'node',
                     style: {
                         'label': 'data(label)',
-                        'width': 100,
-                        'height': 100,
+                        'width': 150,
+                        'height': 150,
                         'background-color': '#1f77b4',
                         'color': 'black',
                         'text-valign': 'center',
                         'text-halign': 'center',
-                        'font-size': 10,
+                        'font-size': 50,
                         'text-wrap': 'wrap',
                         'text-max-width': 80,
                         'padding': 5
@@ -249,12 +249,12 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
                     selector: 'node[type="Person"]',
                     style: {
                         'background-color': 'grey',
-                        'width': 40,
-                        'height': 40,
-                        'font-size': 5.3,
+                        'width': 100,
+                        'height': 100,
+                        'font-size': 15,
                         'color': 'peach',
                         'text-max-width': 120,
-                        'padding': 10
+                        'padding': 5
                     }
                 },
                 {
@@ -281,54 +281,79 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
         cyInstance.on('mouseover', 'edge', handleEdgeMouseover);
         cyInstance.on('mouseout', 'edge', handleEdgeMouseout);
 
+        setCy(cyInstance);
         updateNodeColors(cyInstance);
         updateColorRangeBar(cyInstance.edges());
-
-        setCy(cyInstance);
     };
 
     useEffect(() => {
-        if (elements.length > 0) {
-            renderCytoscape(elements);
-        }
+        renderCytoscape(elements);
     }, [elements]);
 
+    const handleZoomIn = () => {
+        if (cy) {
+            cy.zoom(cy.zoom() * 1.2);
+            cy.center();
+        }
+    };
+
+    const handleZoomOut = () => {
+        if (cy) {
+            cy.zoom(cy.zoom() * 0.8);
+            cy.center();
+        }
+    };
+
     return (
-        <Box>
-            <VStack spacing={4}>
+        <VStack spacing={4} align="stretch" p={4}>
+     
+            
+            <datalist id="names-list">
+                {filteredNames.map((name, index) => (
+                    <option key={index} value={name} />
+                ))}
+            </datalist>
+           
 
-                <Box id="cy" style={{ width: '100%', height: '500px', border: '1px solid #ddd' }}></Box>
+            <Box height="600px" position="relative">
+                <Box id="cy" height="100%" width="100%" border="1px solid gray" borderRadius="md" display="block" />
 
-                <Box id="color-range-bar" style={{ display: 'flex', flexDirection: 'row', marginTop: '10px' }}></Box>
+                <Box position="absolute" top="4" right="4" display="block">
+                    <Button backgroundColor="rgb(208,208,208)" color="black" size="sm" display="block" onClick={handleZoomIn} >+</Button>
+                    <Button backgroundColor="rgb(208,208,208)" color="black" size="sm" marginTop="10%" onClick={handleZoomOut}>-</Button>
+                </Box>
+            </Box>
 
-                <Text fontSize="lg" fontWeight="bold">Number of Collaborators: {collaboratorCount}</Text>
-                <Text fontSize="md" fontWeight="bold">Selected Collaboration: {selectedCollaboration}</Text>
+            <Box>
+                <Text>Number of unique collaborators: {collaboratorCount}</Text>
+                <Text>Color Range:</Text>
+                <Box id="color-range-bar" display="flex"></Box>
+            </Box>
 
-                {selectedCollaboration && (
-                    <Modal isOpen={isOpen} onClose={onClose}>
-                        <ModalOverlay />
-                        <ModalContent>
-                            <ModalHeader>{selectedCollaboration}</ModalHeader>
-                            <ModalCloseButton />
-                            <ModalBody>
-                                <Heading size="md">Titles:</Heading>
-                                <List spacing={3}>
-                                    {titles.map((title, index) => (
-                                        <ListItem key={index}>{title}</ListItem>
-                                    ))}
-                                </List>
-                            </ModalBody>
-                            <ModalFooter>
-                                <Button colorScheme="blue" mr={3} onClick={onClose}>
-                                    Close
-                                </Button>
-                            </ModalFooter>
-                        </ModalContent>
-                    </Modal>
-                )}
-            </VStack>
-        </Box>
+            <Modal isOpen={isOpen} onClose={onClose}>
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Collaboration Details</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <Text>{selectedCollaboration}</Text>
+                        <List spacing={3}>
+                            {titles.map((title, index) => (
+                                <ListItem key={index}>{title}</ListItem>
+                            ))}
+                        </List>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme="blue" onClick={onClose}>
+                            Close
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+            
+        </VStack>
     );
 };
 
 export default GraphComponent3;
+

@@ -38,7 +38,7 @@ const App = () => {
             <Route path="/LandingPage" element={<LandingPage />} />
             <Route path="/results" element={<ResultPage />} />
             <Route path="/chart" element={<ArticleCountChart />} />
-            <Route path="/DomainVisualization/:department" element={<GraphComponent1 />} />
+            <Route path="/DomainVisualization" element={<GraphComponent1 />} />
             <Route path="/collaborations" element={<CollaborationGraph />} />
             <Route path="/searchComponent" element={<SearchComponent />} />
             <Route path="/search-results" element={<SearchResultsPage />} />
