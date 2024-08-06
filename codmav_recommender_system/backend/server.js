@@ -431,31 +431,7 @@ app.get('/api/titles/:domainId', async (req, res) => {
   }
 });
 
-// New endpoint: Get articles for a specific domain
-app.get('/api/articles/:domainId', async (req, res) => {
-  const domainId = req.params.domainId;
-  const session = driver.session();
-  try {
-    const query = `
-      MATCH (dom:Domain)-[r:HAS_ARTICLE]->(t:Title)
-      WHERE id(dom) = $domainId
-      RETURN t
-    `;
-    const result = await session.run(query, { domainId: neo4j.int(domainId) });
 
-    const articles = result.records.map(record => {
-      const title = record.get('t');
-      return { id: title.identity.toString(), title: title.properties.Title_y };
-    });
-
-    res.json({ articles });
-  } catch (error) {
-    console.error('Error fetching articles from Neo4j:', error);
-    res.status(500).json({ error: 'Failed to fetch articles from Neo4j' });
-  } finally {
-    await session.close();
-  }
-});
 
 app.get('/api/persons/:department', async (req, res) => {
   const department = req.params.department;
