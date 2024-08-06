@@ -1,42 +1,65 @@
 import React, { useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
 import neo4j from 'neo4j-driver';
-import { Button } from '@chakra-ui/react';
-import { useNavigate } from 'react-router-dom';
+import { Button, Select, Box, Heading, Flex, Text, Spinner } from '@chakra-ui/react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const ArticleCountChart = () => {
   const [data, setData] = useState([]);
   const [domains, setDomains] = useState([]);
   const [selectedDomains, setSelectedDomains] = useState(['', '', '']);
+  const [selectedDepartment, setSelectedDepartment] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Neo4j connection details (replace with your actual credentials)
+  // Neo4j connection details
   const uri = 'neo4j+s://4317f220.databases.neo4j.io';
   const user = 'neo4j';
   const password = 'ieizSLiVB2yoMwHVIPpzzLhRK6YTPPzg92Bl6sPHYY0';
 
   useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const department = searchParams.get('department');
+    if (department) {
+      setSelectedDepartment(department);
+      fetchDomains(department);
+    } else {
+      setError('No department specified');
+      setIsLoading(false);
+    }
+  }, [location]);
+
+  const fetchDomains = async (department) => {
+    setIsLoading(true);
+    setError(null);
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
     const session = driver.session();
 
-    session
-      .run('MATCH (d:Domain) RETURN d.name AS domain ORDER BY d.name')
-      .then(result => {
-        const domainList = result.records.map(record => record.get('domain'));
-        setDomains(domainList);
-        if (domainList.length > 0) {
-          setSelectedDomains([domainList[0], domainList[1], domainList[2]]);
-        }
-      })
-      .catch(error => {
-        console.error("Error fetching domains:", error);
-      })
-      .finally(() => {
-        session.close();
-        driver.close();
-      });
-  }, []);
+    try {
+      const query = `
+        MATCH (dept:Department {Department: $department})-[:CONTAINS]->(d:Domain)
+        RETURN d.name AS domain
+        ORDER BY d.name
+      `;
+
+      const result = await session.run(query, { department });
+      const domainList = result.records.map(record => record.get('domain'));
+      setDomains(domainList);
+      if (domainList.length > 0) {
+        setSelectedDomains([domainList[0], '', '']);
+      }
+    } catch (error) {
+      console.error("Error fetching domains:", error);
+      setError("Failed to fetch domains. Please try again.");
+    } finally {
+      session.close();
+      driver.close();
+      setIsLoading(false);
+    }
+  };
 
   const handleDomainChange = (index, value) => {
     const newSelectedDomains = [...selectedDomains];
@@ -45,12 +68,14 @@ const ArticleCountChart = () => {
   };
 
   const fetchData = async () => {
+    setIsLoading(true);
+    setError(null);
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
     const session = driver.session();
 
     try {
       const query = `
-        MATCH (d:Domain)
+        MATCH (dept:Department {Department: $department})-[:CONTAINS]->(d:Domain)
         WHERE d.name IN $domains
         RETURN d.name AS domain, 
                REDUCE(acc = [], idx in range(0, size(d.counts) - 1) |
@@ -62,7 +87,10 @@ const ArticleCountChart = () => {
                ) AS result
       `;
 
-      const result = await session.run(query, { domains: selectedDomains.filter(Boolean) });
+      const result = await session.run(query, { 
+        department: selectedDepartment,
+        domains: selectedDomains.filter(Boolean) 
+      });
       const processedData = result.records.flatMap(record => {
         const domain = record.get('domain');
         return record.get('result').map(item => ({
@@ -75,17 +103,19 @@ const ArticleCountChart = () => {
       setData(processedData);
     } catch (error) {
       console.error("Error fetching data:", error);
+      setError("Failed to fetch chart data. Please try again.");
     } finally {
       session.close();
       driver.close();
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (selectedDomains.some(Boolean)) {
+    if (selectedDepartment && selectedDomains.some(Boolean)) {
       fetchData();
     }
-  }, [selectedDomains]);
+  }, [selectedDepartment, selectedDomains]);
 
   const updateChart = () => {
     let traces = [];
@@ -117,67 +147,87 @@ const ArticleCountChart = () => {
     navigate(-1);
   };
 
+  if (isLoading) {
+    return (
+      <Box textAlign="center" mt={10}>
+        <Spinner size="xl" />
+        <Text mt={4}>Loading...</Text>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box textAlign="center" mt={10}>
+        <Text color="red.500">{error}</Text>
+        <Button mt={4} onClick={() => navigate('/')}>Go back to home</Button>
+      </Box>
+    );
+  }
+
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif', textAlign: 'center' }}>
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px' }}>
+    <Box fontFamily="Arial, sans-serif" textAlign="center" p={4}>
+      <Flex justifyContent="space-between" alignItems="center" mb={4}>
         <Button
-          backgroundColor="grey"
+          backgroundColor="gray.200"
           onClick={handlePrev}
-          style={{ marginLeft: '20px' }}
         >
           Back
         </Button>
-      </div>
-      <h1 style={{ fontSize: '2.5rem', marginBottom: '20px', color: '#333' }}>
-        Article Count by Year and Domain
-      </h1>
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+        <Heading as="h1" size="xl" color="gray.700">
+          Article Count by Year and Domain
+        </Heading>
+        <Box width="100px" /> {/* Spacer to balance the layout */}
+      </Flex>
+      
+      <Flex justifyContent="center" mb={4} flexWrap="wrap">
         {[0, 1, 2].map((index) => (
-          <div key={index} style={{ marginRight: '20px' }}>
-            <label htmlFor={`domain-select${index + 1}`} style={{ fontSize: '1rem', marginRight: '5px' }}>
+          <Box key={index} mr={4} mb={4}>
+            <Text as="label" htmlFor={`domain-select${index + 1}`} fontSize="sm" mr={2}>
               Select Domain {index + 1}:
-            </label>
-            <select
+            </Text>
+            <Select
               id={`domain-select${index + 1}`}
               value={selectedDomains[index]}
               onChange={(e) => handleDomainChange(index, e.target.value)}
-              style={{ fontSize: '1rem', padding: '5px', borderRadius: '5px' }}
+              size="sm"
             >
               <option value="">Select a domain</option>
               {domains.map(domain => (
                 <option key={domain} value={domain}>{domain}</option>
               ))}
-            </select>
-          </div>
+            </Select>
+          </Box>
         ))}
-      </div>
-      <div style={{ width: '100%', height: '800px', margin: '0 auto' }}>
+      </Flex>
+      
+      <Box width="100%" height="800px" margin="0 auto">
         <Plot
           data={updateChart()}
           layout={{
-            width: 1200, // Set the width of the chart
-            height: 500, // Set the height of the chart
+            width: 1200,
+            height: 500,
             xaxis: { title: 'Year', tickfont: { size: 14 } },
             yaxis: { title: 'Number of Articles', tickfont: { size: 14 } },
             legend: {
               title: { text: 'Domain', font: { size: 16 } },
-              x: 1.05, // Move legend further right outside the plot area
-              xanchor: 'left', // Anchor legend to the left
+              x: 1.05,
+              xanchor: 'left',
               y: 1,
-              bgcolor: '#f8f9fa', // Adds background color to the legend
-              bordercolor: '#ccc', // Adds border color to the legend
-              borderwidth: 1, // Adds border width to the legend
+              bgcolor: '#f8f9fa',
+              bordercolor: '#ccc',
+              borderwidth: 1,
             },
             autosize: false,
-            margin: { l: 80, r: 200, t: 100, b: 80 }, // Adjust margins to accommodate larger chart
+            margin: { l: 80, r: 200, t: 100, b: 80 },
             paper_bgcolor: '#f8f9fa',
             plot_bgcolor: '#f8f9fa',
             font: { size: 16, color: '#333' },
           }}
-          config={{ responsive: true,displayModeBar: false }}
+          config={{ responsive: true, displayModeBar: false }}
         />
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 
