@@ -400,8 +400,6 @@ app.get('/api/graph/:department', async (req, res) => {
 });
 
 
-
-
 // New endpoint: Get titles for a specific domain
 app.get('/api/titles/:domainId', async (req, res) => {
   const domainId = req.params.domainId;

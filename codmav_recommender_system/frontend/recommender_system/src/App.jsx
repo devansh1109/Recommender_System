@@ -11,6 +11,7 @@ import CollaborationGraph from './CollaborationGraph';
 import SearchComponent from './SearchComponent';
 import SearchResultsPage from './SearchResultsPage';
 import KeywordSearch from './KeywordSearch';
+import DomainVisualization from './DomainVisualization';
 
 
 // Extend the theme to include custom colors, fonts, etc.
@@ -38,7 +39,7 @@ const App = () => {
             <Route path="/LandingPage" element={<LandingPage />} />
             <Route path="/results" element={<ResultPage />} />
             <Route path="/chart" element={<ArticleCountChart />} />
-            <Route path="/DomainVisualization" element={<GraphComponent1 />} />
+            <Route path="/DomainVisualization" element={<DomainVisualization />} />
             <Route path="/collaborations" element={<CollaborationGraph />} />
             <Route path="/searchComponent" element={<SearchComponent />} />
             <Route path="/search-results" element={<SearchResultsPage />} />

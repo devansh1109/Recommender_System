@@ -1,54 +1,47 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, Text, Button, Spinner, Alert, AlertIcon } from '@chakra-ui/react';
 import GraphComponent1 from './GraphComponent1';
 
+const DomainVisualization = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [domainData, setDomainData] = useState(null);
 
+  // Extract department from URL search params
+  const query = new URLSearchParams(location.search);
+  const department = query.get('department');
 
+  useEffect(() => {
+    fetchData();
+  }, [department]);
 
+  const fetchData = async () => {
+    if (!department) {
+      setError('Department not specified');
+      setLoading(false);
+      return;
+    }
 
-  const DomainVisualization = () => {
-    const location = useLocation();
-    const [elements, setElements] = useState([]);
-    const [error, setError] = useState(null); // Add an error state for better debugging
-  
-    useEffect(() => {
-      const fetchGraphData = async (department) => {
-        try {
-          const response = await fetch(`/api/graph/${encodeURIComponent(department)}`);
-          const data = await response.json();
-  
-          if (response.ok) {
-            const nodes = data.nodes.map(node => ({
-              data: { id: node.id, label: node.label, type: node.type, count: node.count },
-              classes: node.type.toLowerCase()
-            }));
-  
-            const edges = data.edges.map(edge => ({
-              data: { id: edge.id, source: edge.source, target: edge.target, label: edge.label }
-            }));
-  
-            setElements([...nodes, ...edges]);
-          } else {
-            setError('Failed to fetch data');
-            console.error('Failed to fetch data:', data);
-          }
-        } catch (error) {
-          setError('Error fetching data');
-          console.error('Error fetching data:', error);
-        }
-      };
-  
-      const params = new URLSearchParams(location.search);
-      const department = params.get('department');
-      
-      if (department) {
-        fetchGraphData(department);
-      } else {
-        setError('Department parameter is missing');
-        console.error('Department parameter is missing');
+    try {
+      setLoading(true);
+      setError(null);
+      // Use the department in the API URL
+      const response = await fetch(`http://localhost:8080/api/graph/${encodeURIComponent(department)}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
-    }, [location.search]);
+      const data = await response.json();
+      setDomainData(data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError(`Failed to fetch data: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleBackClick = () => {
     navigate('/');
@@ -65,7 +58,7 @@ import GraphComponent1 from './GraphComponent1';
           Prev
         </Button>
       </Box>
-      
+
       <Text fontSize="2xl" fontWeight="bold" textAlign="center" mb="4">
         Domain Visualization
       </Text>
@@ -79,17 +72,13 @@ import GraphComponent1 from './GraphComponent1';
         </Alert>
       ) : domainData ? (
         <Box width="100%" height="80vh">
-          <GraphComponent1 department="Department of Computer Science Engineering" />
+          <GraphComponent1 department={department} />
         </Box>
       ) : (
         <Text textAlign="center" color="red.500">
           No data available. Please try again later.
         </Text>
       )}
-
-      <Button onClick={handleBackClick} mt="4">
-        Back to Home
-      </Button>
     </Box>
   );
 };

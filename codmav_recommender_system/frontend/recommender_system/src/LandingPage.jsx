@@ -91,6 +91,7 @@ const LandingPage = () => {
         if (domains[selectedDepartment].length > 0 && !selectedDomain) {
           alert('Please select a domain.');
         } else {
+          // Navigate to results page with department and domain
           navigate(`/results?department=${encodeURIComponent(selectedDepartment)}${selectedDomain ? `&domain=${encodeURIComponent(selectedDomain)}` : ''}`);
         }
       } else {
@@ -316,7 +317,7 @@ const LandingPage = () => {
               Existing Collaborations
             </Button>
             <Button onClick={handleNavigateToHistoryOfArticles} variant="filled" backgroundColor="white">
-              Domain Trend
+              History of Articles
             </Button>
           </Flex>
         )}
