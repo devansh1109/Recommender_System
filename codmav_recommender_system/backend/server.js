@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const denv = require('dotenv');
 denv.config();
-
+const jwt = require('jsonwebtoken');
 const app = express();
 const port = process.env.PORT || 8080; // Use PORT from .env or default to 8080
 
@@ -454,6 +454,28 @@ app.get('/api/persons/:department', async (req, res) => {
   }
 });
 
+//cookie-integration
+const secretKey = process.env.JWT_SECRET;
+const verifyToken = (req, res, next) => {
+  const { jwt: token } = req.body; // Extract token from request body
+
+  if (token) {
+    jwt.verify(token, secretKey, (err, decoded) => {
+      if (err) {
+        return res.status(403).json({ message: 'Invalid token' }); 
+      }
+      req.user = decoded;
+      next(); // Proceed to the next middleware or route handler
+    });
+  } else {
+    res.status(401).json({ message: 'No token provided' }); 
+  }
+};
+
+// Apply verifyToken middleware to the /api/decode route
+app.post("/api/decode", verifyToken, (req, res) => {
+  res.json(req.user); // Send the decoded token data as the response
+});
 
 
 // Start server

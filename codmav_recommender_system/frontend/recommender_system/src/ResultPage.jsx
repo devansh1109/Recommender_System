@@ -17,15 +17,31 @@ const ResultPage = () => {
   const [collaborationCounts, setCollaborationCounts] = useState([]);
   const [searchName, setSearchName] = useState('');
   const [searchTriggered, setSearchTriggered] = useState(false);
-
+  const [Token, setToken] = useState(''); 
+  var facultyName;
   const { isOpen, onOpen, onClose } = useDisclosure();
-
   const selectedDepartment = departmentParam || '';
   const selectedDomain = domainParam || '';
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const tokenFromCookie = getCookieValue('auth');
+        if (tokenFromCookie) {
+          const TokenResponse = await fetch("http://localhost:8080/api/decode", {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ jwt: tokenFromCookie }), 
+          });
+
+          const TokenData = await TokenResponse.json();
+          setSearchName(TokenData.name);
+          facultyName=TokenData.name 
+          console.log(facultyName);
+        }
+
         const response = await fetch('http://localhost:8080/api/query', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -45,7 +61,7 @@ const ResultPage = () => {
     };
 
     fetchData();
-  }, [selectedDomain, selectedDepartment, onOpen]);
+  }, [selectedDomain, selectedDepartment, Token]); 
 
   const fetchTopCollaborators = async () => {
     try {
@@ -77,11 +93,26 @@ const ResultPage = () => {
   };
 
   const handleSearchChange = (e) => {
-    setSearchName(e.target.value);
+    // setSearchName(e.target.value);
     setCollaborationCounts([]);
     setSearchTriggered(false);
     setError(null); // Reset error when the search input changes
   };
+
+  // // Function to get the value of a cookie by name
+  function getCookieValue(cookieName) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${cookieName}=`);
+    if (parts.length === 2) {
+      const cookieValue = parts.pop().split(';').shift();
+      // console.log(cookieValue)
+      setToken(cookieValue); 
+      // console.log("cookie value : ",Token)
+      return cookieValue;  
+    }
+    return null;
+  }
+
 
   return (
     <ChakraProvider theme={extendTheme({})}>
@@ -177,7 +208,7 @@ const ResultPage = () => {
               <Box padding="10px">
                 <Input
                   placeholder="Search by name"
-                  value={searchName}
+                  // value={searchName}
                   onChange={handleSearchChange}
                   mb="10px"
                 />
