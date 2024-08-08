@@ -39,6 +39,7 @@ const ResultPage = () => {
           const TokenData = await TokenResponse.json();
           setSearchName(TokenData.name);
           facultyName=TokenData.name 
+          facultyName = facultyName.replace(/^(Dr\. |Prof\. )\s*/, '');
           console.log(facultyName);
         }
 
@@ -61,13 +62,14 @@ const ResultPage = () => {
     };
 
     fetchData();
+    fetchTopCollaborators();
   }, [selectedDomain, selectedDepartment, Token]); 
 
   const fetchTopCollaborators = async () => {
     try {
-      if (!selectedDomain || !searchName) return;
+      if (!selectedDomain || !facultyName) return;
 
-      const response = await fetch(`http://localhost:8080/api/top-collaborators?domainName=${encodeURIComponent(selectedDomain)}&personName=${encodeURIComponent(searchName)}`, {
+      const response = await fetch(`http://localhost:8080/api/top-collaborators?domainName=${encodeURIComponent(selectedDomain)}&personName=${facultyName || null}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -76,7 +78,7 @@ const ResultPage = () => {
       const jsonData = await response.json();
 
       if (jsonData.length === 0) {
-        setError(`No collaborator found for ${searchName}`);
+        setError(`No collaborator found for ${facultyName}`);
       } else {
         setCollaborationCounts(jsonData);
         setSearchTriggered(true);
@@ -90,13 +92,6 @@ const ResultPage = () => {
 
   const handlePrev = () => {
     navigate(-1);
-  };
-
-  const handleSearchChange = (e) => {
-    // setSearchName(e.target.value);
-    setCollaborationCounts([]);
-    setSearchTriggered(false);
-    setError(null); // Reset error when the search input changes
   };
 
   // // Function to get the value of a cookie by name
@@ -192,49 +187,47 @@ const ResultPage = () => {
         {/* Main Content */}
         <Flex width="100%" height="100%" direction="row">
           <Box width="30%" height="100%" display="flex" flexDirection="column" padding="20px">
-            <Box
-              width="100%"
-              height="40%"
-              border="1px solid #ccc"
-              overflow="hidden"
-              display="flex"
-              flexDirection="column"
-              boxSizing="border-box"
-            >
-              <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
-                Top 5 Suggested Collaborators 
-              </Text>
-              <Divider mb="10px" />
-              <Box padding="10px">
-                <Input
-                  placeholder="Search by name"
-                  // value={searchName}
-                  onChange={handleSearchChange}
-                  mb="10px"
-                />
-                <Button onClick={fetchTopCollaborators} mb="10px">Search</Button>
-                {error && (
-                  <Text color="red.500" mb="10px">
-                    {error}
-                  </Text>
-                )}
-                <Box maxHeight="calc(40vh - 80px)" overflowY="auto">
-                  <List spacing={3}>
-                    {searchTriggered && (collaborationCounts.length > 0 ? (
-                      collaborationCounts.map((collab, index) => (
-                        <ListItem key={index} overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
-                          <Text>
-                            {collab.collaboratorName}
-                          </Text>
-                        </ListItem>
-                      ))
-                    ) : (
-                      <ListItem>No top collaborators found</ListItem>
-                    ))}
-                  </List>
-                </Box>
-              </Box>
-            </Box>
+          <Box
+  width="100%"
+  height="40%"
+  border="1px solid #ccc"
+  overflow="hidden"
+  display="flex"
+  flexDirection="column"
+  boxSizing="border-box"
+>
+  <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
+    Top 5 Suggested Collaborators 
+  </Text>
+  <Divider mb="10px" />
+  <Box padding="10px">
+    {error && (
+      <Text color="red.500" mb="10px">
+        {error}
+      </Text>
+    )}
+    <Box maxHeight="calc(40vh - 80px)" overflowY="auto">
+      <List spacing={3}>
+        {searchTriggered ? (
+          collaborationCounts.length > 0 ? (
+            collaborationCounts.map((collab, index) => (
+              <ListItem key={index} overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                <Text>
+                  {collab.collaboratorName}
+                </Text>
+              </ListItem>
+            ))
+          ) : (
+            <ListItem>No top collaborators found</ListItem>
+          )
+        ) : (
+          <ListItem>Loading...</ListItem>
+        )}
+      </List>
+    </Box>
+  </Box>
+</Box>
+
 
             <Box
               width="100%"
