@@ -2,13 +2,15 @@ const express = require('express');
 const neo4j = require('neo4j-driver');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const denv = require('dotenv');
+denv.config();
 
 const app = express();
-const port = 8080;
+const port = process.env.PORT || 8080; // Use PORT from .env or default to 8080
 
-const URI = 'neo4j+s://4317f220.databases.neo4j.io';
-const USER = 'neo4j';
-const PASSWORD = 'ieizSLiVB2yoMwHVIPpzzLhRK6YTPPzg92Bl6sPHYY0';
+const URI = process.env.NEO4J_URI;
+const USER = process.env.NEO4J_USER;
+const PASSWORD = process.env.NEO4J_PASSWORD;
 
 let driver;
 

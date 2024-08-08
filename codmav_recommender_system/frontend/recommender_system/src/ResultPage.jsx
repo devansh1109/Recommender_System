@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, Text, Link, Divider, List, ListItem, Flex, Button, Input, ChakraProvider, extendTheme, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure } from '@chakra-ui/react';
 import GraphComponent from './GraphComponent';
-import Cookies from 'js-cookie';
-
 const ResultPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -47,13 +45,6 @@ const ResultPage = () => {
     };
 
     fetchData();
-
-    // Check if it's the first visit
-    const hasVisited = Cookies.get('hasVisitedResultPage');
-    if (!hasVisited) {
-      onOpen(); // Open the guide modal
-      Cookies.set('hasVisitedResultPage', 'true', { expires: 365 }); // Set cookie to expire in 1 year
-    }
   }, [selectedDomain, selectedDepartment, onOpen]);
 
   const fetchTopCollaborators = async () => {
