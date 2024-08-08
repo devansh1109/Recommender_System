@@ -45,26 +45,27 @@ app.get('/api/top-collaborators', async (req, res) => {
   const session = driver.session();
   try {
     const query = `
-      // Finding the maximum title count in the domain
-      MATCH (t:Title)<-[:WRITES]-(p2:Person)-[:EXPERT_IN_DIRECT]->(d:Domain {name:$domainName})-[:HAS_ARTICLE]->(t)
+      // Find the maximum number of titles written in the specified domain
+      MATCH (t:Title)<-[:WRITES]-(p2:Person)-[:EXPERT_IN_DIRECT]->(d:Domain {name: $domainName})-[:HAS_ARTICLE]->(t)
       WITH p2, COUNT(t) AS titleCount
       ORDER BY titleCount DESC
       LIMIT 1
       WITH COALESCE(titleCount, 0) AS maxTitleCount
 
-      // Finding the maximum collaboration count with the specified person
-      MATCH (p1:Person {name:$personName})-[r:COLLABORATION]-(p2:Person)
+      // Find the maximum number of collaborations with the specified person
+      OPTIONAL MATCH (p1:Person {name: $personName})-[r:COLLABORATION]-(p2:Person)
       WITH p1, COALESCE(COUNT(r), 0) AS maxCollaborations, maxTitleCount
       ORDER BY maxCollaborations DESC
       LIMIT 1
 
       // Main query to retrieve collaborators and calculate the score
-      MATCH (t:Title)<-[:WRITES]-(p2:Person)-[:EXPERT_IN_DIRECT]->(d:Domain {name:$domainName})-[:HAS_ARTICLE]->(t)
-      OPTIONAL MATCH (p1:Person {name:$personName})-[r:COLLABORATION]-(p2)
+      MATCH (t:Title)<-[:WRITES]-(p2:Person)-[:EXPERT_IN_DIRECT]->(d:Domain {name: $domainName})-[:HAS_ARTICLE]->(t)
+      OPTIONAL MATCH (p1:Person {name: $personName})-[r:COLLABORATION]-(p2)
       WHERE p2.name <> p1.name
       WITH maxTitleCount, maxCollaborations, p1, p2, COALESCE(COUNT(r), 0) AS collaborations, COALESCE(COUNT(t), 0) AS titleCount1
       WITH p1, p2, collaborations, titleCount1, maxTitleCount, maxCollaborations,
-           (0.7 * (titleCount1 * 1.0 / CASE WHEN maxTitleCount = 0 THEN 1 ELSE maxTitleCount END) + 0.3 * (collaborations * 1.0 / CASE WHEN maxCollaborations = 0 THEN 1 ELSE maxCollaborations END)) AS score
+          (0.7 * (titleCount1 * 1.0 / CASE WHEN maxTitleCount = 0 THEN 1 ELSE maxTitleCount END) +
+            0.3 * (collaborations * 1.0 / CASE WHEN maxCollaborations = 0 THEN 1 ELSE maxCollaborations END)) AS score
       RETURN p1.name AS personName, p2.name AS collaboratorName, collaborations, titleCount1, score
       ORDER BY score DESC
       LIMIT 5;
