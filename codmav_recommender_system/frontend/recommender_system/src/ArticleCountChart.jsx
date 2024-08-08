@@ -41,7 +41,7 @@ const ArticleCountChart = () => {
     try {
       const query = `
         MATCH (dept:Department {Department: $department})-[:CONTAINS]->(d:Domain)
-        RETURN d.name AS domain
+        RETURN toUpper(d.name) AS domain
         ORDER BY d.name
       `;
 
@@ -76,8 +76,8 @@ const ArticleCountChart = () => {
     try {
       const query = `
         MATCH (dept:Department {Department: $department})-[:CONTAINS]->(d:Domain)
-        WHERE d.name IN $domains
-        RETURN d.name AS domain, 
+        WHERE toUpper(d.name) IN $domains
+        RETURN toUpper(d.name) AS domain, 
                REDUCE(acc = [], idx in range(0, size(d.counts) - 1) |
                  CASE
                    WHEN d.counts[idx] IS NOT NULL AND d.years[idx] IS NOT NULL
@@ -175,11 +175,12 @@ const ArticleCountChart = () => {
           Back
         </Button>
         <Heading as="h1" size="xl" color="gray.700">
-          Article Count by Year and Domain
+          Year-wise Publication Statistics
         </Heading>
+       
         <Box width="100px" /> {/* Spacer to balance the layout */}
       </Flex>
-      
+      <Text color="rgb(144,144,144)" fontStyle="italic" fontSize="18px" fontWeight="bold">Select domain to view the year-wise comparison statistics</Text>
       <Flex justifyContent="center" mb={4} flexWrap="wrap">
         {[0, 1, 2].map((index) => (
           <Box key={index} mr={4} mb={4}>
@@ -202,30 +203,48 @@ const ArticleCountChart = () => {
       </Flex>
       
       <Box width="100%" height="800px" margin="0 auto">
-        <Plot
-          data={updateChart()}
-          layout={{
-            width: 1200,
-            height: 500,
-            xaxis: { title: 'Year', tickfont: { size: 14 } },
-            yaxis: { title: 'Number of Articles', tickfont: { size: 14 } },
-            legend: {
-              title: { text: 'Domain', font: { size: 16 } },
-              x: 1.05,
-              xanchor: 'left',
-              y: 1,
-              bgcolor: '#f8f9fa',
-              bordercolor: '#ccc',
-              borderwidth: 1,
-            },
-            autosize: false,
-            margin: { l: 80, r: 200, t: 100, b: 80 },
-            paper_bgcolor: '#f8f9fa',
-            plot_bgcolor: '#f8f9fa',
-            font: { size: 16, color: '#333' },
-          }}
-          config={{ responsive: true, displayModeBar: false }}
-        />
+      <Plot
+  data={updateChart()}
+  layout={{
+    width: 1200,
+    height: 500,
+    xaxis: { 
+      title: 'Year', 
+      tickfont: { size: 14 },
+      showgrid: true,  // Enable grid lines for x-axis
+      gridcolor: '#ccc',  // Optional: set grid line color
+      gridwidth: 1,  // Optional: set grid line width
+      linecolor: '#333',  // Set axis line color
+      linewidth: 2,  // Set axis line width
+    },
+    yaxis: { 
+      title: 'Number of Articles', 
+      tickfont: { size: 14 },
+      showgrid: true,  // Enable grid lines for y-axis
+      gridcolor: '#ccc',  // Optional: set grid line color
+      gridwidth: 1,  // Optional: set grid line width
+      linecolor: '#333',  // Set axis line color
+      linewidth: 2,  // Set axis line width
+    },
+    legend: {
+      title: { text: 'Domain', font: { size: 16 } },
+      x: 1.05,
+      xanchor: 'left',
+      y: 1,
+      bgcolor: '#f8f9fa',
+      bordercolor: '#ccc',
+      borderwidth: 1,
+    },
+    autosize: false,
+    margin: { l: 80, r: 200, t: 100, b: 80 },
+    paper_bgcolor: '#f8f9fa',
+    plot_bgcolor: '#f8f9fa',
+    font: { size: 16, color: '#333' },
+  }}
+  config={{ responsive: true, displayModeBar: false }}
+/>
+
+
       </Box>
     </Box>
   );

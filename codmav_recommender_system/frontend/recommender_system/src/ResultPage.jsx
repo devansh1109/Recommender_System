@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, Text, Link, Divider, List, ListItem, Flex, Button, Input, ChakraProvider, extendTheme, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure } from '@chakra-ui/react';
 import GraphComponent from './GraphComponent';
+import Cookies from 'js-cookie';
 
 const ResultPage = () => {
   const location = useLocation();
@@ -46,7 +47,14 @@ const ResultPage = () => {
     };
 
     fetchData();
-  }, [selectedDomain, selectedDepartment]);
+
+    // Check if it's the first visit
+    const hasVisited = Cookies.get('hasVisitedResultPage');
+    if (!hasVisited) {
+      onOpen(); // Open the guide modal
+      Cookies.set('hasVisitedResultPage', 'true', { expires: 365 }); // Set cookie to expire in 1 year
+    }
+  }, [selectedDomain, selectedDepartment, onOpen]);
 
   const fetchTopCollaborators = async () => {
     try {
@@ -155,7 +163,7 @@ const ResultPage = () => {
             Faculty Members Working in <i>{selectedDepartment.toUpperCase()}</i> Under <i>{selectedDomain.toUpperCase()}</i>
           </Text>
           <Text fontSize="20px" fontWeight="bold" fontStyle="italic" color="gray">
-            Select a node or Expert ID to access the faculty profile.
+            Click on a node or Expert ID to access the faculty profile.
           </Text>
         </Flex>
 
@@ -216,10 +224,11 @@ const ResultPage = () => {
               flexDirection="column"
               boxSizing="border-box"
             >
-              <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
+              <Text fontSize="21px" fontWeight="bold" textAlign="center" mb="10px">
                 {selectedDomain.toUpperCase()} Domain Expert
               </Text>
-              <Text fontSize="md" textAlign="center" mb="10px">
+              <Text fontSize="15px" fontStyle="italic" color="grey" fontWeight="bold" align="center">Faculty with primary expertise and significant work in this domain</Text>
+              <Text fontSize="md" textAlign="center" mb="9px" fontWeight="bold" fontStyle="italic">
                 Number of Faculty Members {directCount}
               </Text>
               <Divider mb="10px" />
@@ -256,10 +265,11 @@ const ResultPage = () => {
               flexDirection="column"
               boxSizing="border-box"
             >
-              <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
+              <Text fontSize="21px" fontWeight="bold" textAlign="center" mb="10px">
                 {selectedDomain.toUpperCase()} Contributors
               </Text>
-              <Text fontSize="md" textAlign="center" mb="10px">
+              <Text fontSize="15px" fontStyle="italic" color="grey" fontWeight="bold" align="center"> Faculty who have worked or published in this domain, though it is not their primary area of expertise.</Text>
+              <Text fontSize="md" textAlign="center" mb="10px" fontWeight="bold" fontStyle="italic">
                 Number of Similar Faculty Members {indirectCount}
               </Text>
               <Divider mb="10px" />

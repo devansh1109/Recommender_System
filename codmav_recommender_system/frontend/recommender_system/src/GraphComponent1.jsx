@@ -134,19 +134,19 @@ const GraphComponent1 = ({ department }) => {
                         'color': 'black',
                         'text-valign': 'center',
                         'text-halign': 'center',
-                        'font-size': 11,
+                        'font-size': 13.5,
                         'text-wrap': 'wrap',
                         'text-max-width': 80,
-                        'padding': 10
+                        'padding': 40
                     }
                 },
                 {
                     selector: 'node[type="Department"]',
                     style: {
                         'background-color': 'rgb(25, 25, 112)',
-                        'width': 40,
-                        'height': 40,
-                        'font-size': 12,
+                        'width': 70,
+                        'height': 70,
+                        'font-size': 18,
                         'color': '#fff',
                         'text-max-width': 120,
                         'padding': 30
@@ -238,6 +238,7 @@ const GraphComponent1 = ({ department }) => {
             backgroundColor: '#f0f4f8',
             padding: '20px',
         }}>
+            
             <div style={{
                 width: '100%',
                 maxWidth: '1500px',
@@ -255,6 +256,7 @@ const GraphComponent1 = ({ department }) => {
                     justifyContent: 'space-between',
                     width: 'calc(100% - 20px)', // Adjust width to account for button space
                 }}>
+                    
                     <button 
                         onClick={() => navigate(-1)} 
                         style={{
@@ -295,8 +297,20 @@ const GraphComponent1 = ({ department }) => {
                     borderBottom: '2px solid #ddd',
                     paddingBottom: '10px',
                 }}>
-                    Domain Visualization
+                  Domain-wise Statistics
+                  
                 </h1>
+                <h4 style={{
+                    color: 'grey',
+                    fontSize: '18px',
+                    fontWeight: 'bold',
+                    margin: '20px 0',
+                    textAlign: 'center',
+                    borderBottom: '2px solid #ddd',
+                    paddingBottom: '10px',
+                    fontStyle:"italic"}}>
+                        The graph below shows the number of articles that has been published in each of these domains
+                    </h4>
                 <div style={{
                     display: 'flex',
                     flexDirection: 'row',
@@ -304,6 +318,7 @@ const GraphComponent1 = ({ department }) => {
                     borderRadius: '10px',
                     overflow: 'hidden',
                 }}>
+                    
                     <div id="cy" style={{
                         flex: 2,
                         backgroundColor: 'rgba(0,0,0,0.1)',

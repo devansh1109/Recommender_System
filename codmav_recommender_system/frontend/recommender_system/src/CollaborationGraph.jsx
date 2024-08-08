@@ -72,11 +72,11 @@ const CollaborationGraph = () => {
           </Button>
         </Flex>
         <Heading mb={4}>Collaboration Network for {department}</Heading>
-        <Text mb={4}>Enter a person's name to view their collaboration network:</Text>
+        <Text mb={4}>Select a faculty name to view their existing collaboration network</Text>
         <form onSubmit={handleSearch}>
           <VStack spacing={4} align="stretch">
             <Select
-              placeholder="Select a person..."
+              placeholder="Select a faculty name..."
               onChange={(e) => setSearchQuery(e.target.value)}
               value={searchQuery}
             >

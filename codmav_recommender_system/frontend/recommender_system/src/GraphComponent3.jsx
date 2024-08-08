@@ -13,9 +13,9 @@ import {
     ModalCloseButton,
     useDisclosure,
 } from '@chakra-ui/react';
-
+ 
 cytoscape.use(coseBilkent);
-
+ 
 const GraphComponent3 = ({ initialSearchQuery }) => {
     const [elements, setElements] = useState([]);
     const [cy, setCy] = useState(null);
@@ -27,7 +27,7 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
     const [collaboratorCount, setCollaboratorCount] = useState(0);
     const [fuse, setFuse] = useState(null);
     const { isOpen, onOpen, onClose } = useDisclosure();
-
+ 
     const fetchNames = async () => {
         try {
             const response = await fetch('http://localhost:8080/api/persons');
@@ -38,8 +38,7 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
             const personNames = data.personNames || [];
             setNames(personNames);
             setFilteredNames(personNames);
-
-            // Initialize Fuse.js
+ 
             const fuseInstance = new Fuse(personNames, {
                 includeScore: true,
                 threshold: 0.3,
@@ -49,11 +48,11 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
             console.error('Error fetching names:', error);
         }
     };
-
+ 
     useEffect(() => {
         fetchNames();
     }, []);
-
+ 
     useEffect(() => {
         if (fuse && searchQuery) {
             const result = fuse.search(searchQuery);
@@ -62,19 +61,18 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
             setFilteredNames(names);
         }
     }, [searchQuery, fuse, names]);
-
+ 
     const fetchData = async (name) => {
         try {
-            // Clear previous data
             setTitles([]);
             setSelectedCollaboration('');
-
+ 
             const response = await fetch(`http://localhost:8080/api/collaborations/${name}`);
             if (!response.ok) {
                 throw new Error('Failed to fetch data');
             }
             const { nodes, edges, collaborationData } = await response.json();
-
+ 
             const cyElements = [];
             nodes.forEach(node => {
                 cyElements.push({
@@ -85,7 +83,7 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
                     }
                 });
             });
-
+ 
             edges.forEach(edge => {
                 cyElements.push({
                     data: {
@@ -99,35 +97,34 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
                     }
                 });
             });
-
+ 
             setElements(cyElements);
-
-            // Calculate the number of unique collaborators
+ 
             const uniqueCollaborators = new Set(edges.map(edge => edge.target));
             setCollaboratorCount(uniqueCollaborators.size);
-
+ 
         } catch (error) {
             console.error('Error fetching data:', error);
         }
     };
-
+ 
     useEffect(() => {
         if (initialSearchQuery) {
             setSearchQuery(initialSearchQuery);
             fetchData(initialSearchQuery);
         }
     }, [initialSearchQuery]);
-
+ 
     const handleSelect = (event) => {
         const name = event.target.value;
         setSearchQuery(name);
         fetchData(name);
     };
-
+ 
     const handleEdgeClick = async (event) => {
         const edge = event.target;
         const collaborationId = edge.data('collaborationId');
-
+ 
         try {
             const response = await fetch(`http://localhost:8080/api/collaboration/${collaborationId}/titles`);
             if (!response.ok) {
@@ -136,20 +133,20 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
             const { titles } = await response.json();
             setTitles(titles);
             setSelectedCollaboration(`Collaboration between ${edge.source().data('label')} and ${edge.target().data('label')}`);
-            onOpen(); // Open modal when a collaboration is selected
+            onOpen();
         } catch (error) {
             console.error('Error fetching titles for collaboration:', error);
         }
     };
-
+ 
     const handleEdgeMouseover = (event) => {
         const edge = event.target;
         edge.style({
-            'line-color': 'rgb(255, 95, 21)', // Outline color
-            'target-arrow-color': 'rgb(255, 95, 21)',
-            'width': 6 // Thicker width for the outline
+            'line-color': 'rgb(255, 95, 21)',
+            'target-arrow-color': 'rgb(255, 95, 21)'
+            
         });
-
+ 
         let tooltip = document.getElementById('tooltip');
         if (!tooltip) {
             tooltip = document.createElement('div');
@@ -161,40 +158,40 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
             tooltip.style.borderRadius = '3px';
             document.body.appendChild(tooltip);
         }
-
-        tooltip.innerText = 'Click to view articles'; // Updated tooltip text
+ 
+        tooltip.innerText = 'Click to view articles';
         tooltip.style.left = `${event.originalEvent.clientX + 5}px`;
         tooltip.style.top = `${event.originalEvent.clientY + 5}px`;
     };
-
+ 
     const handleEdgeMouseout = (event) => {
         const edge = event.target;
         edge.style({
             'line-color': '#999',
-            'target-arrow-color': '#999',
-            'width': 2 // Default width
+            'target-arrow-color': '#999'
+            
         });
-
+ 
         const tooltip = document.getElementById('tooltip');
         if (tooltip) {
             document.body.removeChild(tooltip);
         }
     };
-
+ 
     const calculateColor = (count) => {
         const maxCount = 20;
         const minColor = [255, 240, 26];
         const maxColor = [205, 0, 0];
-
+ 
         const ratio = Math.min(count / maxCount, 1);
         const color = minColor.map((min, index) => {
             const max = maxColor[index];
             return Math.round(min + ratio * (max - min));
         });
-
+ 
         return `rgba(${color[0]}, ${color[1]}, ${color[2]}, 1)`;
     };
-
+ 
     const updateNodeColors = (cyInstance) => {
         cyInstance.edges().forEach(edge => {
             const targetNode = edge.target();
@@ -203,15 +200,15 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
             targetNode.style('background-color', color);
         });
     };
-
+ 
     const updateColorRangeBar = (edges) => {
         const minCount = Math.min(...edges.map(edge => edge.data('count')));
         const maxCount = Math.max(...edges.map(edge => edge.data('count')));
-
+ 
         const colorRangeBar = document.getElementById('color-range-bar');
         if (colorRangeBar) {
             colorRangeBar.innerHTML = '';
-
+ 
             for (let i = minCount; i <= maxCount; i++) {
                 const color = calculateColor(i);
                 const colorBlock = document.createElement('div');
@@ -223,7 +220,7 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
             }
         }
     };
-
+ 
     const renderCytoscape = (elements) => {
         const cyInstance = cytoscape({
             container: document.getElementById('cy'),
@@ -276,84 +273,122 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
                 idealEdgeLength: 100
             }
         });
-
+ 
         cyInstance.on('tap', 'edge', handleEdgeClick);
         cyInstance.on('mouseover', 'edge', handleEdgeMouseover);
         cyInstance.on('mouseout', 'edge', handleEdgeMouseout);
-
+ 
         setCy(cyInstance);
         updateNodeColors(cyInstance);
         updateColorRangeBar(cyInstance.edges());
-    };
 
+        // Adjust zoom level based on the number of elements
+        const totalElements = elements.length;
+
+        if (totalElements > 10) {
+            cyInstance.fit();
+        } else {
+            // Calculate a more aggressive zoom level for small graphs
+            const zoomLevel = Math.max(0.1, Math.min(1, 1 / Math.log(totalElements + 2)));
+
+            cyInstance.zoom({
+                level: zoomLevel,
+                position: { x: cyInstance.width() / 2, y: cyInstance.height() / 2 }
+            });
+
+            // Use larger padding for small graphs to push elements towards the center
+            const padding = Math.max(100, 300 - 20 * totalElements);
+
+            cyInstance.fit(elements, padding);
+        }
+    };
+    
+ 
     useEffect(() => {
         renderCytoscape(elements);
     }, [elements]);
-
+ 
     const handleZoomIn = () => {
         if (cy) {
             cy.zoom(cy.zoom() * 1.2);
             cy.center();
         }
     };
-
+ 
     const handleZoomOut = () => {
         if (cy) {
             cy.zoom(cy.zoom() * 0.8);
             cy.center();
         }
     };
-
+ 
     return (
         <VStack spacing={4} align="stretch" p={4}>
-     
-            
             <datalist id="names-list">
                 {filteredNames.map((name, index) => (
                     <option key={index} value={name} />
                 ))}
             </datalist>
-           
-
+ 
             <Box height="600px" position="relative">
                 <Box id="cy" height="100%" width="100%" border="1px solid gray" borderRadius="md" display="block" />
-
-                <Box position="absolute" top="4" right="4" display="block">
-                    <Button backgroundColor="rgb(208,208,208)" color="black" size="sm" display="block" onClick={handleZoomIn} >+</Button>
-                    <Button backgroundColor="rgb(208,208,208)" color="black" size="sm" marginTop="10%" onClick={handleZoomOut}>-</Button>
+ 
+                <Box position="absolute" top="4" right="4" display="flex" flexDirection="column" alignItems="flex-end">
+                    <Box display="flex" flexDirection="column" alignItems="flex-end" mb={4}>
+                        <Button backgroundColor="rgb(208,208,208)" color="black" size="sm" mb={2} onClick={handleZoomIn}>+</Button>
+                        <Button backgroundColor="rgb(208,208,208)" color="black" size="sm" onClick={handleZoomOut}>-</Button>
+                    </Box>
+                    <Box backgroundColor="rgba(255, 255, 255, 0.8)" p={2} borderRadius="md">
+ 
+                        <Box id="color-range-bar" display="flex" flexDirection="column" height="300px" width="20px" />
+                    </Box>
                 </Box>
             </Box>
-
+ 
             <Box>
-                <Text>Number of unique collaborators: {collaboratorCount}</Text>
-                <Text>Color Range:</Text>
-                <Box id="color-range-bar" display="flex"></Box>
+            <Text fontSize="lg" fontWeight="bold">Number of Collaborators: {collaboratorCount}</Text>
+                
             </Box>
-
-            <Modal isOpen={isOpen} onClose={onClose}>
-                <ModalOverlay />
-                <ModalContent>
-                    <ModalHeader>Collaboration Details</ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody>
-                        <Text>{selectedCollaboration}</Text>
-                        <List spacing={3}>
-                            {titles.map((title, index) => (
-                                <ListItem key={index}>{title}</ListItem>
-                            ))}
-                        </List>
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button colorScheme="blue" onClick={onClose}>
-                            Close
-                        </Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
-            
+ 
+            <Modal isOpen={isOpen} onClose={onClose} size="xl">
+                        <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+                        <ModalContent borderRadius="lg" boxShadow="xl">
+                            <ModalHeader 
+                                bg="blue.500" 
+                                color="white" 
+                                borderTopRadius="lg" 
+                                p={4}
+                            >
+                                {selectedCollaboration}
+                            </ModalHeader>
+                            <ModalCloseButton color="white" />
+                            <ModalBody p={6}>
+                                <Heading size="md" mb={4}>Articles:</Heading>
+                                <List spacing={3}>
+                                    {titles.map((title, index) => (
+                                        <ListItem 
+                                            key={index} 
+                                            p={3} 
+                                            bg="gray.50" 
+                                            borderRadius="md"
+                                            _hover={{ bg: "gray.100" }}
+                                            transition="background-color 0.2s"
+                                        >
+                                            <Text fontSize="md" fontWeight="medium">{title}</Text>
+                                        </ListItem>
+                                    ))}
+                                </List>
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button colorScheme="blue" onClick={onClose}>
+                                    Close
+                                </Button>
+                            </ModalFooter>
+                        </ModalContent>
+                    </Modal>
+                
         </VStack>
     );
 };
-
+ 
 export default GraphComponent3;
-

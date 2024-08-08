@@ -53,10 +53,7 @@ const LandingPage = () => {
     'Department of MBA': [],
     'Faculty of Law': [],
     'Department of Architecture': [],
-    'Department of Neuroscience': [],
     'Department of Psychology': [],
-    'Department of Human Genetics': [],
-    'Department of Orthopaedics': [],
     'Library': [],
   };
 
@@ -212,25 +209,26 @@ const LandingPage = () => {
             Search By Keyword
           </Button>
           <Button onClick={handleShowVisualizations} colorScheme="blue" variant="filled" backgroundColor="white">
-            Existing Collaboration & Trends
+            Statistics
           </Button>
         </Flex>
 
         <Box mb="30px" zIndex="1">
           <Text fontSize="4xl" fontWeight="bold" color="white">
-            MILAAP
+            PESU RESEARCH COLLABORATION TOOL
           </Text>
-          <Text fontSize="2xl" color="white">
-            Research Collaboration Tool
-          </Text>
+          
         </Box>
 
         {(showDropdowns || showSearch || showVisualizations) && (
           <Box mb="40px" zIndex="1">
+
             <Flex direction="column" alignItems="center">
               {showDropdowns && (
                 <>
                   <Box mb="20px">
+                  <Text color="	rgb(224,224,224)" fontStyle="italic" fontSize="17px">Select the department and domain in which you are seeking collaboration</Text>
+
                     <Select
                       value={selectedDepartment}
                       onChange={handleDepartmentChange}
@@ -271,9 +269,10 @@ const LandingPage = () => {
               )}
               {showSearch && (
                 <Box mb="20px">
+                  <Text color="	rgb(224,224,224)" fontStyle="italic" fontSize="17px">Enter a keyword to view related articles</Text>
                   <Input
                     type="text"
-                    placeholder="Enter Keywords"
+                    placeholder="Enter a Keyword"
                     value={keyword}
                     onChange={handleKeywordChange}
                     variant="filled"
@@ -288,6 +287,8 @@ const LandingPage = () => {
               )}
               {showVisualizations && (
                 <Box mb="20px">
+                                    <Text color="	rgb(224,224,224)" fontStyle="italic" fontSize="17px">Select the department in which you are seeking collaboration</Text>
+
                   <Select
                     value={visualizationDepartment}
                     onChange={handleVisualizationDepartmentChange}
@@ -311,13 +312,13 @@ const LandingPage = () => {
         {showGraphButtons && (
           <Flex mt="10px" zIndex="1" justifyContent="center" gap="10px">
             <Button onClick={handleNavigateToDomainVisualization} variant="filled" backgroundColor="white">
-              Domain Visualization
+              Domain Statistics
             </Button>
             <Button onClick={handleNavigateToCollaborations} variant="filled" backgroundColor="white">
-              Existing Collaborations
+              Explore Existing Collaborations
             </Button>
             <Button onClick={handleNavigateToHistoryOfArticles} variant="filled" backgroundColor="white">
-              History of Articles
+              Year-wise Publication Statistics
             </Button>
           </Flex>
         )}

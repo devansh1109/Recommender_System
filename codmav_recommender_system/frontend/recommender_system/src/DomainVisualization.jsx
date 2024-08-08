@@ -52,16 +52,16 @@ const DomainVisualization = () => {
   };
 
   return (
+    
+      
+    
     <Box display="flex" flexDirection="column" alignItems="center" height="100vh" padding="20px">
       <Box position="absolute" top="19px" left="10px">
-        <Button backgroundColor="grey" onClick={handlePrevClick}>
-          Prev
-        </Button>
+      
+        
       </Box>
 
-      <Text fontSize="2xl" fontWeight="bold" textAlign="center" mb="4">
-        Domain Visualization
-      </Text>
+    
 
       {loading ? (
         <Spinner size="xl" />
@@ -74,10 +74,12 @@ const DomainVisualization = () => {
         <Box width="100%" height="80vh">
           <GraphComponent1 department={department} />
         </Box>
+        
       ) : (
         <Text textAlign="center" color="red.500">
           No data available. Please try again later.
         </Text>
+        
       )}
     </Box>
   );
