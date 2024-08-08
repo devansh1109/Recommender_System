@@ -45,6 +45,16 @@ const ResultPage = () => {
     };
 
     fetchData();
+<<<<<<< HEAD
+=======
+
+    // Check if it's the first visit after the updated code
+    const hasVisitedResultPageAfterUpdate = Cookies.get('hasVisitedResultPageAfterUpdate');
+    if (!hasVisitedResultPageAfterUpdate) {
+      onOpen(); // Open the guide modal
+      Cookies.set('hasVisitedResultPageAfterUpdate', 'true', { expires: 365 }); // Set cookie to expire in 1 year
+    }
+>>>>>>> b10de490 (final frontend changed)
   }, [selectedDomain, selectedDepartment, onOpen]);
 
   const fetchTopCollaborators = async () => {

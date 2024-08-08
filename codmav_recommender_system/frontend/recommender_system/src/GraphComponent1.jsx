@@ -86,13 +86,16 @@ const GraphComponent1 = ({ department }) => {
                 console.error('Error fetching data:', error);
             }
         }
-        if (!getCookie('guideShown')) {
+
+        // Check if it's the first visit after the updated code
+        const hasVisitedGraphPageAfterUpdate = getCookie('hasVisitedGraphPageAfterUpdate');
+        if (!hasVisitedGraphPageAfterUpdate) {
             onOpen();
-            setCookie('guideShown', 'true', 365); // Set cookie for 1 year
+            setCookie('hasVisitedGraphPageAfterUpdate', 'true', 365); // Set cookie for 1 year
         }
 
         fetchData();
-    }, [department,onOpen]);
+    }, [department, onOpen]);
 
     useEffect(() => {
         if (elements.length > 0) {
@@ -156,7 +159,7 @@ const GraphComponent1 = ({ department }) => {
                     selector: 'node[type="Domain"]',
                     style: {
                         'background-color': 'skyblue',
-                        'text-transform': 'uppercase', // Ensure text is in uppercase
+                        'text-transform': 'uppercase',
                         'text-max-width': 80,
                         'cursor': 'pointer'
                     }
@@ -164,7 +167,7 @@ const GraphComponent1 = ({ department }) => {
                 {
                     selector: 'node[type="Domain"].hover',
                     style: {
-                        'background-color': 'rgb(70, 130, 180)', // Change to the color you want on hover
+                        'background-color': 'rgb(70, 130, 180)',
                         'border-width': 2,
                         'border-color': 'rgb(70, 130, 180)'
                     }
@@ -188,9 +191,9 @@ const GraphComponent1 = ({ department }) => {
                 nodeDimensionsIncludeLabels: true
             }
         });
-    
+
         cyInstance.fit(cyInstance.nodes(), 10);
-    
+
         cyInstance.on('tap', 'node', (event) => {
             const node = event.target;
             if (node.data('type') === 'Domain') {
@@ -200,31 +203,31 @@ const GraphComponent1 = ({ department }) => {
                 fetchTitles(domainId, domainName);
             }
         });
-    
+
         cyInstance.on('mouseover', 'node[type="Domain"]', (event) => {
             const node = event.target;
-            node.addClass('hover'); // Add 'hover' class on mouseover
-    
+            node.addClass('hover');
+
             setTooltipContent('Click to view articles');
             const { x, y } = node.renderedPosition();
             const container = document.getElementById('cy');
             const containerRect = container.getBoundingClientRect();
             const nodeX = x + containerRect.left;
             const nodeY = y + containerRect.top;
-    
+
             setTooltipPosition({
                 x: nodeX + 20,
                 y: nodeY - 20
             });
         });
-    
+
         cyInstance.on('mouseout', 'node[type="Domain"]', (event) => {
             const node = event.target;
-            node.removeClass('hover'); // Remove 'hover' class on mouseout
-    
+            node.removeClass('hover');
+
             setTooltipContent('');
         });
-    
+
         return cyInstance;
     }
 
@@ -238,7 +241,6 @@ const GraphComponent1 = ({ department }) => {
             backgroundColor: '#f0f4f8',
             padding: '20px',
         }}>
-            
             <div style={{
                 width: '100%',
                 maxWidth: '1500px',
@@ -254,9 +256,8 @@ const GraphComponent1 = ({ department }) => {
                     left: '10px',
                     display: 'flex',
                     justifyContent: 'space-between',
-                    width: 'calc(100% - 20px)', // Adjust width to account for button space
+                    width: 'calc(100% - 20px)',
                 }}>
-                    
                     <button 
                         onClick={() => navigate(-1)} 
                         style={{
@@ -297,8 +298,7 @@ const GraphComponent1 = ({ department }) => {
                     borderBottom: '2px solid #ddd',
                     paddingBottom: '10px',
                 }}>
-                  Domain-wise Statistics
-                  
+                    Domain-wise Statistics
                 </h1>
                 <h4 style={{
                     color: 'grey',
@@ -308,9 +308,10 @@ const GraphComponent1 = ({ department }) => {
                     textAlign: 'center',
                     borderBottom: '2px solid #ddd',
                     paddingBottom: '10px',
-                    fontStyle:"italic"}}>
-                        The graph below shows the number of articles that has been published in each of these domains
-                    </h4>
+                    fontStyle:"italic"
+                }}>
+                    The graph below shows the number of articles that has been published in each of these domains
+                </h4>
                 <div style={{
                     display: 'flex',
                     flexDirection: 'row',
@@ -318,7 +319,6 @@ const GraphComponent1 = ({ department }) => {
                     borderRadius: '10px',
                     overflow: 'hidden',
                 }}>
-                    
                     <div id="cy" style={{
                         flex: 2,
                         backgroundColor: 'rgba(0,0,0,0.1)',
@@ -341,7 +341,7 @@ const GraphComponent1 = ({ department }) => {
                             textAlign: 'center',
                             marginBottom: '10px',
                             fontSize: '20px',
-                            textTransform: 'uppercase' // Ensure domain names are in uppercase
+                            textTransform: 'uppercase'
                         }}>
                             {selectedDomainName ? `Articles of ${selectedDomainName.toUpperCase()}` : 'Total Articles per Domain'}
                         </h3>
@@ -380,7 +380,7 @@ const GraphComponent1 = ({ department }) => {
                                     <li key={index} style={{
                                         color: '#333',
                                         marginBottom: '10px',
-                                        textTransform: 'uppercase' // Ensure text is in uppercase
+                                        textTransform: 'uppercase'
                                     }}>
                                         {domain.name}: {domain.count} articles
                                     </li>
@@ -413,12 +413,12 @@ const GraphComponent1 = ({ department }) => {
                         <ModalHeader>Guide</ModalHeader>
                         <ModalCloseButton />
                         <ModalBody>
-                        <p>Here's how to use the domain visualization tool:</p>
-                        <ol>
-                            <li>Click on a domain node in the graph to view related articles.</li>
-                            <li>Hover over nodes to see additional information.</li>
-                            <li>Use the 'Back' button to return to the previous page.</li>
-                        </ol>
+                            <p>Here's how to use the domain visualization tool:</p>
+                            <ol>
+                                <li>Click on a domain node in the graph to view related articles.</li>
+                                <li>Hover over nodes to see additional information.</li>
+                                <li>Use the 'Back' button to return to the previous page.</li>
+                            </ol>
                         </ModalBody>
                         <ModalFooter>
                             <Button colorScheme="blue" onClick={onClose}>
@@ -433,7 +433,3 @@ const GraphComponent1 = ({ department }) => {
 };
 
 export default GraphComponent1;
-
-
-
-
