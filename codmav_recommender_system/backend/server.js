@@ -37,6 +37,7 @@ app.get('/api/top-collaborators', async (req, res) => {
   const { domainName, personName } = req.query;
 
   if (!domainName || !personName) {
+    conole
     console.error('Missing required parameters:', { domainName, personName });
     return res.status(400).send('Domain name and person name are required');
   }
@@ -69,10 +70,12 @@ app.get('/api/top-collaborators', async (req, res) => {
       LIMIT 5;
     `;
 
+    console.log(personName,domainName)
     const result = await session.run(query, {
       personName,
       domainName,
     });
+    
 
     // Helper function to handle Neo4j Integer conversion
     const toNumber = value => neo4j.isInt(value) ? value.toNumber() : value;
@@ -85,7 +88,7 @@ app.get('/api/top-collaborators', async (req, res) => {
       titleCount: toNumber(record.get('titleCount1')),
       score: toNumber(record.get('score'))
     }));
-
+    // console.log(collaborators)
     // Ensure the specified person is included even if they have no collaborations
     const personInResults = collaborators.find(collab => collab.personName === personName);
     if (!personInResults) {

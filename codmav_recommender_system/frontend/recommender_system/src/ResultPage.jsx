@@ -18,65 +18,137 @@ const ResultPage = () => {
   const [searchName, setSearchName] = useState('');
   const [searchTriggered, setSearchTriggered] = useState(false);
   const [Token, setToken] = useState(''); 
-  var facultyName;
+  const [facultyName,setFacultyName]=useState('');
   const { isOpen, onOpen, onClose } = useDisclosure();
   const selectedDepartment = departmentParam || '';
   const selectedDomain = domainParam || '';
 
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const tokenFromCookie = getCookieValue('auth');
+  //       if (tokenFromCookie) {
+  //         const TokenResponse = await fetch("http://localhost:8080/api/decode", {
+  //           method: 'POST',
+  //           headers: {
+  //             'Content-Type': 'application/json',
+  //           },
+  //           body: JSON.stringify({ jwt: tokenFromCookie }), 
+  //         });
+
+  //         const TokenData = await TokenResponse.json();
+  //         setSearchName(TokenData.name);
+  //         facultyName=TokenData.name 
+  //         facultyName = facultyName.replace(/^(Dr\. |Prof\. )\s*/, '');
+  //         console.log(facultyName);
+  //       }
+
+  //       const response = await fetch('http://localhost:8080/api/query', {
+  //         method: 'POST',
+  //         headers: { 'Content-Type': 'application/json' },
+  //         body: JSON.stringify({ domain: selectedDomain, department: selectedDepartment }),
+  //       });
+
+  //       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+  //       const jsonData = await response.json();
+  //       setDirectRecords(jsonData.directRecords);
+  //       setIndirectRecords(jsonData.indirectRecords);
+  //       setDirectCount(jsonData.directRecords.length);
+  //       setIndirectCount(jsonData.indirectRecords.length);
+  //       setError(null);
+  //     } catch (error) {
+  //       setError(error.message);
+  //     }
+  //   };
+
+  //   fetchData();
+  //   fetchTopCollaborators();
+
+  //   // // Check if it's the first visit after the updated code
+  //   // const hasVisitedResultPageAfterUpdate = Cookies.get('hasVisitedResultPageAfterUpdate');
+  //   // if (!hasVisitedResultPageAfterUpdate) {
+  //   //   onOpen(); // Open the guide modal
+  //   //   Cookies.set('hasVisitedResultPageAfterUpdate', 'true', { expires: 365 }); // Set cookie to expire in 1 year
+  //   // }
+  // }, [selectedDomain, selectedDepartment, onOpen, Token]);
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const tokenFromCookie = getCookieValue('auth');
-        if (tokenFromCookie) {
-          const TokenResponse = await fetch("http://localhost:8080/api/decode", {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ jwt: tokenFromCookie }), 
-          });
+  const fetchData = async () => {
+    try {
+      const tokenFromCookie = getCookieValue('auth');
+      let facultyName = '';
 
-          const TokenData = await TokenResponse.json();
-          setSearchName(TokenData.name);
-          facultyName=TokenData.name 
-          facultyName = facultyName.replace(/^(Dr\. |Prof\. )\s*/, '');
-          console.log(facultyName);
-        }
-
-        const response = await fetch('http://localhost:8080/api/query', {
+      if (tokenFromCookie) {
+        const TokenResponse = await fetch("http://localhost:8080/api/decode", {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ domain: selectedDomain, department: selectedDepartment }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ jwt: tokenFromCookie }), 
         });
 
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        const jsonData = await response.json();
-        setDirectRecords(jsonData.directRecords);
-        setIndirectRecords(jsonData.indirectRecords);
-        setDirectCount(jsonData.directRecords.length);
-        setIndirectCount(jsonData.indirectRecords.length);
-        setError(null);
-      } catch (error) {
-        setError(error.message);
+        const TokenData = await TokenResponse.json();
+        facultyName = TokenData.name;
+        facultyName = facultyName.replace(/^(Dr\. |Prof\. )\s*/, '');
+        setSearchName(facultyName);
+        setFacultyName(facultyName);
+        console.log(facultyName);
       }
-    };
 
-    fetchData();
-    fetchTopCollaborators();
+      const response = await fetch('http://localhost:8080/api/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain: selectedDomain, department: selectedDepartment }),
+      });
 
-    // // Check if it's the first visit after the updated code
-    // const hasVisitedResultPageAfterUpdate = Cookies.get('hasVisitedResultPageAfterUpdate');
-    // if (!hasVisitedResultPageAfterUpdate) {
-    //   onOpen(); // Open the guide modal
-    //   Cookies.set('hasVisitedResultPageAfterUpdate', 'true', { expires: 365 }); // Set cookie to expire in 1 year
-    // }
-  }, [selectedDomain, selectedDepartment, onOpen, Token]);
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      const jsonData = await response.json();
+      setDirectRecords(jsonData.directRecords);
+      setIndirectRecords(jsonData.indirectRecords);
+      setDirectCount(jsonData.directRecords.length);
+      setIndirectCount(jsonData.indirectRecords.length);
+      setError(null);
+
+      // Fetch top collaborators if domain and faculty name are available
+      if (selectedDomain && facultyName) {
+        const collaboratorsResponse = await fetch(`http://localhost:8080/api/top-collaborators?domainName=${encodeURIComponent(selectedDomain)}&personName=${facultyName}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!collaboratorsResponse.ok) throw new Error(`HTTP error! Status: ${collaboratorsResponse.status}`);
+        const collaboratorsData = await collaboratorsResponse.json();
+
+        if (collaboratorsData.length === 0) {
+          setError(`No collaborator found for ${facultyName}`);
+        } else {
+          setCollaborationCounts(collaboratorsData);
+          setSearchTriggered(true);
+          setError(null);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError(error.message);
+    }
+  };
+
+  fetchData();
+
+  // Optional: Check if it's the first visit after the updated code
+  // const hasVisitedResultPageAfterUpdate = Cookies.get('hasVisitedResultPageAfterUpdate');
+  // if (!hasVisitedResultPageAfterUpdate) {
+  //   onOpen(); // Open the guide modal
+  //   Cookies.set('hasVisitedResultPageAfterUpdate', 'true', { expires: 365 }); // Set cookie to expire in 1 year
+  // }
+}, [selectedDomain, selectedDepartment, onOpen, Token]);
+
 
   const fetchTopCollaborators = async () => {
     try {
       if (!selectedDomain || !facultyName) return;
-
-      const response = await fetch(`http://localhost:8080/api/top-collaborators?domainName=${encodeURIComponent(selectedDomain)}&personName=${facultyName || null}`, {
+      console.log("faculty name",facultyName)
+      const response = await fetch(`http://localhost:8080/api/top-collaborators?domainName=${encodeURIComponent(selectedDomain)}&personName=${facultyName}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -115,6 +187,12 @@ const ResultPage = () => {
     return null;
   }
 
+  function loadfacultyName(){
+    if(facultyName){
+      return facultyName
+    }
+    return ""
+  }
 
   return (
     <ChakraProvider theme={extendTheme({})}>
@@ -206,6 +284,7 @@ const ResultPage = () => {
   <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
     Top 5 Suggested Collaborators 
   </Text>
+  <p>{loadfacultyName()}</p>
   <Divider mb="10px" />
   <Box padding="10px">
     {error && (
