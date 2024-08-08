@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import cytoscape from 'cytoscape';
 import coseBilkent from 'cytoscape-cose-bilkent';
-import { Box, IconButton, VStack, Text, HStack } from '@chakra-ui/react';
+import { Box, IconButton, VStack, Text, HStack, Tooltip } from '@chakra-ui/react';
 import { AddIcon, MinusIcon } from '@chakra-ui/icons';
 
 cytoscape.use(coseBilkent);
@@ -78,7 +78,15 @@ const GraphComponent = ({ domain }) => {
               'text-wrap': 'wrap',
               'text-max-width': 100,
               'padding': '65px',
-              'background-color': '#FFA500' // Default color for Person nodes
+              'background-color': '#FFA500', // Default color for Person nodes
+              'transition-property': 'background-color',
+              'transition-duration': '0.3s'
+            }
+          },
+          {
+            selector: 'node[type="Person"]:hover',
+            style: {
+              'background-color': '#FF8C00' // Darker orange on hover
             }
           },
           {
@@ -87,7 +95,7 @@ const GraphComponent = ({ domain }) => {
               'label': 'data(label)',
               'width': 600,
               'height': 600,
-              'background-color': '		rgb(112,112,112)',
+              'background-color': 'rgb(112,112,112)',
               'color': '#fff',
               'text-valign': 'center',
               'text-halign': 'center',
@@ -96,7 +104,15 @@ const GraphComponent = ({ domain }) => {
               'text-max-width': 100,
               'padding': '60px',
               'border': '2px solid black',
-              'text-transform': 'uppercase'
+              'text-transform': 'uppercase',
+              'transition-property': 'background-color',
+              'transition-duration': '0.3s'
+            }
+          },
+          {
+            selector: 'node[type="Domain"]:hover',
+            style: {
+              'background-color': '#696969' // Darker gray on hover
             }
           },
           {
@@ -142,9 +158,9 @@ const GraphComponent = ({ domain }) => {
             const indirectEdges = node.connectedEdges('[label="EXPERT_IN_INDIRECT"]');
             
             if (directEdges.length > 0) {
-              node.style('background-color', '#66CCFF'); // Green for direct experts
+              node.style('background-color', '#66CCFF'); // Blue for direct experts
             } else if (indirectEdges.length > 0) {
-              node.style('background-color', '#FF9933'); // Red for indirect contributors
+              node.style('background-color', '#FF9933'); // Orange for indirect contributors
             }
           }
         });
@@ -155,6 +171,56 @@ const GraphComponent = ({ domain }) => {
         const expertId = node.data('properties').expertid;
         if (expertId) {
           window.open(`https://pes.irins.org/profile/${expertId}`, '_blank');
+        }
+      });
+
+      // Add tooltip on hover for person nodes
+      cyRef.current.on('mouseover', 'node[type="Person"]', function (evt) {
+        const node = evt.target;
+        const tooltip = (
+          <Tooltip label="Click on the node to view faculty profile" placement="top" bg="gray.700" color="white">
+            <div></div>
+          </Tooltip>
+        );
+        node.qtip({
+          content: tooltip,
+          position: {
+            my: 'top center',
+            at: 'bottom center',
+            adjust: {
+              x: 0,
+              y: -10
+            }
+          },
+          style: {
+            classes: 'qtip-bootstrap',
+            tip: {
+              width: 16,
+              height: 8
+            }
+          },
+          show: {
+            event: 'mouseover'
+          },
+          hide: {
+            event: 'mouseout'
+          }
+        });
+      });
+
+      // Change node color on hover and hover out
+      cyRef.current.on('mouseover', 'node[type="Person"]', function (evt) {
+        const node = evt.target;
+        node.style('background-color', '#0077B6'); // Darker blue on hover
+      });
+      cyRef.current.on('mouseout', 'node[type="Person"]', function (evt) {
+        const node = evt.target;
+        const directEdges = node.connectedEdges('[label="EXPERT_IN_DIRECT"]');
+        const indirectEdges = node.connectedEdges('[label="EXPERT_IN_INDIRECT"]');
+        if (directEdges.length > 0) {
+          node.style('background-color', '#66CCFF'); // Return to normal blue
+        } else if (indirectEdges.length > 0) {
+          node.style('background-color', '#FF9933'); // Return to normal orange
         }
       });
     }

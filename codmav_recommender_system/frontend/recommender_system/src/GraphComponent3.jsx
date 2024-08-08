@@ -257,7 +257,7 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
                 {
                     selector: 'edge',
                     style: {
-                        'width': 'mapData(count, 0, 10, 1, 10)',
+                        'width': 'mapData(count, 0, 10, 2, 20)',
                         'line-color': '#999',
                         'target-arrow-color': '#999',
                         'target-arrow-shape': 'triangle',

@@ -62,8 +62,20 @@ const ResultPage = () => {
     };
 
     fetchData();
+<<<<<<< HEAD
     fetchTopCollaborators();
   }, [selectedDomain, selectedDepartment, Token]); 
+=======
+
+
+    // Check if it's the first visit after the updated code
+    const hasVisitedResultPageAfterUpdate = Cookies.get('hasVisitedResultPageAfterUpdate');
+    if (!hasVisitedResultPageAfterUpdate) {
+      onOpen(); // Open the guide modal
+      Cookies.set('hasVisitedResultPageAfterUpdate', 'true', { expires: 365 }); // Set cookie to expire in 1 year
+    }
+  }, [selectedDomain, selectedDepartment, onOpen]);
+>>>>>>> origin/main
 
   const fetchTopCollaborators = async () => {
     try {

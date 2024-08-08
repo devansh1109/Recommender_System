@@ -72,13 +72,17 @@ const CollaborationGraph = () => {
           </Button>
         </Flex>
         <Heading mb={4}>Collaboration Network for {department}</Heading>
-        <Text mb={4}>Select a faculty name to view their existing collaboration network</Text>
-        <form onSubmit={handleSearch}>
-          <VStack spacing={4} align="stretch">
+        <Flex justifyContent="center" alignItems="center" mb={4} flexDirection="column">
+          <Text mb={4}>
+            Select a faculty name to view their existing collaboration network
+          </Text>
+          <Flex align="center">
             <Select
               placeholder="Select a faculty name..."
               onChange={(e) => setSearchQuery(e.target.value)}
               value={searchQuery}
+              maxWidth="250px"
+              mr={4}
             >
               {filteredNames.map((name, index) => (
                 <option key={index} value={name}>
@@ -86,11 +90,11 @@ const CollaborationGraph = () => {
                 </option>
               ))}
             </Select>
-            <Button type="submit" colorScheme="blue">
+            <Button type="submit" colorScheme="blue" onClick={handleSearch} maxWidth="150px">
               Search
             </Button>
-          </VStack>
-        </form>
+          </Flex>
+        </Flex>
         {showGraph && <GraphComponent3 initialSearchQuery={searchQuery} />}
 
         <Modal isOpen={isOpen} onClose={onClose}>
@@ -99,21 +103,21 @@ const CollaborationGraph = () => {
             <ModalHeader>Guide</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
-            <Text>
-                                Here are some instructions or guidance on how to use this collaboration tool.
-                            </Text>
-                            <Text mt={4}>
-                                1. Use the dropdown to select a person.
-                            </Text>
-                            <Text>
-                                2. The graph will update to show collaborators and their articles.
-                            </Text>
-                            <Text>
-                                3. Click on an edge to see the titles of articles for that collaboration.
-                            </Text>
-                            <Text>
-                                4. Hover over the color range bar to see the strength of collaboration associated with each color.
-                            </Text>
+              <Text>
+                Here are some instructions or guidance on how to use this collaboration tool.
+              </Text>
+              <Text mt={4}>
+                1. Use the dropdown to select a person.
+              </Text>
+              <Text>
+                2. The graph will update to show collaborators and their articles.
+              </Text>
+              <Text>
+                3. Click on an edge to see the titles of articles for that collaboration.
+              </Text>
+              <Text>
+                4. Hover over the color range bar to see the strength of collaboration associated with each color.
+              </Text>
             </ModalBody>
             <ModalFooter>
               <Button colorScheme="blue" mr={3} onClick={onClose}>
