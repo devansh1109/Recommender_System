@@ -31,10 +31,10 @@ const LandingPage = () => {
       'DATA MINING',
     ],
     'Department of Electronics and Communication Engineering': [],
-    'Department of Mechanical Engineering': [],
-    'Department of Electrical and Electronics Engineering': [],
-    'Department of Biotechnology': [],
-    'Department of Civil Engineering': [],
+    // 'Department of Mechanical Engineering': [],
+    // 'Department of Electrical and Electronics Engineering': [],
+    // 'Department of Biotechnology': [],
+    // 'Department of Civil Engineering': [],
     'Department of Science and Humanities': ['Advanced Materials',
       'FLUID DYNAMICS',
       'GEOMETRIC FUNCTION THEORY',
@@ -49,12 +49,12 @@ const LandingPage = () => {
       'PHARMACOGNOSY', 	
       'PHARMACEUTICAL ANALYSIS',
       'PHARMACY PRACTICE'],
-    'Department of MCA': [],
-    'Department of MBA': [],
-    'Faculty of Law': [],
-    'Department of Architecture': [],
-    'Department of Psychology': [],
-    'Library': [],
+    // 'Department of MCA': [],
+    // 'Department of MBA': [],
+    // 'Faculty of Law': [],
+    // 'Department of Architecture': [],
+    // 'Department of Psychology': [],
+    // 'Library': [],
   };
 
   const departments = Object.keys(domains);
@@ -204,7 +204,7 @@ const LandingPage = () => {
           zIndex="1"
           overflowY="auto"
         >
-          <Button onClick={navigateToResearchPortal}>Home</Button>
+          {/* <Button onClick={navigateToResearchPortal}>Home</Button> */}
           <Text fontSize="2xl" fontWeight="bold" mb="20px">
             EXPLORE COLLABORATORS
           </Text>

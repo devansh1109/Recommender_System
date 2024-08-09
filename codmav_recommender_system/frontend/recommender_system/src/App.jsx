@@ -31,7 +31,7 @@ const App = () => {
     <ChakraProvider theme={theme}>
       <Router>
         {/* Include the Navbar */}
-       
+       <Navbar/>
         {/* Main Content */}
         <div style={{ flex: 1, padding: '20px' }}>
           <Routes>
