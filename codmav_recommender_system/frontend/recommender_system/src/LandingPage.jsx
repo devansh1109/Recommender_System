@@ -149,6 +149,11 @@ const LandingPage = () => {
     setShowGraphButtons(domains[event.target.value].length > 0);
   };
 
+   const navigateToResearchPortal = ()=>{
+    window.location.href = "http://localhost:3000";
+  }
+  
+
   return (
     <ChakraProvider>
       <Box
@@ -199,6 +204,7 @@ const LandingPage = () => {
           zIndex="1"
           overflowY="auto"
         >
+          <Button onClick={navigateToResearchPortal}>Home</Button>
           <Text fontSize="2xl" fontWeight="bold" mb="20px">
             EXPLORE COLLABORATORS
           </Text>
