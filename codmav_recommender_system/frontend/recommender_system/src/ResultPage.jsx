@@ -283,8 +283,8 @@ const ResultPage = () => {
 >
   <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
     Top 5 Suggested Collaborators 
+    for {facultyName}
   </Text>
-  <p>{loadfacultyName()}</p>
   <Divider mb="10px" />
   <Box padding="10px">
     {error && (
@@ -313,6 +313,7 @@ const ResultPage = () => {
     </Box>
   </Box>
 </Box>
+
 
 
             <Box
