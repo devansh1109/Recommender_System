@@ -49,7 +49,7 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
     useEffect(() => {
         const hasVisited = getCookie('hasVisited');
         if (!hasVisited) {
-            onGuideOpen();
+            
             setCookie('hasVisited', 'true', 365);
         }
     }, []);

@@ -204,45 +204,55 @@ const ArticleCountChart = () => {
       
       <Box width="100%" height="800px" margin="0 auto">
       <Plot
-  data={updateChart()}
+  data={updateChart().map((trace, index) => ({
+    ...trace,
+    marker: { size: 10, color: `rgba(${index * 50}, ${150 - index * 30}, ${200 + index * 20}, 0.8)` },
+    line: { shape: 'spline', width: 3, color: `rgba(${index * 50}, ${150 - index * 30}, ${200 + index * 20}, 0.8)` }
+  }))} 
   layout={{
     width: 1200,
-    height: 500,
+    height: 600,
     xaxis: { 
-      title: 'Year', 
-      tickfont: { size: 14 },
-      showgrid: true,  // Enable grid lines for x-axis
-      gridcolor: '#ccc',  // Optional: set grid line color
-      gridwidth: 1,  // Optional: set grid line width
-      linecolor: '#333',  // Set axis line color
-      linewidth: 2,  // Set axis line width
+      title: { text: 'Year', font: { size: 18, color: '#333' } }, 
+      tickfont: { size: 14, color: '#555' },
+      showgrid: true,
+      gridcolor: '#ddd',  
+      gridwidth: 1,
+      linecolor: '#444',  
+      linewidth: 2,  
+      range: [2000, Math.max(...data.map(d => d.year))],  // Ensure min year starts at 2000
+      tickformat: 'd',
     },
     yaxis: { 
-      title: 'Number of Articles', 
-      tickfont: { size: 14 },
-      showgrid: true,  // Enable grid lines for y-axis
-      gridcolor: '#ccc',  // Optional: set grid line color
-      gridwidth: 1,  // Optional: set grid line width
-      linecolor: '#333',  // Set axis line color
-      linewidth: 2,  // Set axis line width
+      title: { text: 'Number of Articles', font: { size: 18, color: '#333' } }, 
+      tickfont: { size: 14, color: '#555' },
+      showgrid: true,  
+      gridcolor: '#ddd',
+      gridwidth: 1,  
+      linecolor: '#444',  
+      linewidth: 2,
     },
     legend: {
-      title: { text: 'Domain', font: { size: 16 } },
+      title: { text: 'Domain', font: { size: 16, color: '#333' } },
       x: 1.05,
       xanchor: 'left',
       y: 1,
       bgcolor: '#f8f9fa',
       bordercolor: '#ccc',
       borderwidth: 1,
+      font: { size: 14, color: '#333' },
     },
-    autosize: false,
+    hovermode: 'x unified',  // Show unified hover info for better readability
+    hoverlabel: { bgcolor: '#fff', font: { size: 14, color: '#333' } },  // Improve hover label aesthetics
+    paper_bgcolor: '#f4f4f4',
+    plot_bgcolor: '#f4f4f4',
     margin: { l: 80, r: 200, t: 100, b: 80 },
-    paper_bgcolor: '#f8f9fa',
-    plot_bgcolor: '#f8f9fa',
     font: { size: 16, color: '#333' },
   }}
   config={{ responsive: true, displayModeBar: false }}
 />
+
+
 
 
       </Box>
