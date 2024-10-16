@@ -245,7 +245,6 @@ const ResultPage = () => {
               <p>Here's how to view domain better:</p>
               <ol>
                 <li>Click on a faculty node or their expert id provided to view their profile.</li>
-                <li>Select a name from the dropdown to view top 5 collaborators.</li>
                 <li>Domain Experts are Faculty Members Explicitly Associated with This Field.</li>
                 <li>Contributors are the Faculty Members with Experience and Publications in This Field</li>
                 <li>Use the 'Back' button to return to the previous page.</li>

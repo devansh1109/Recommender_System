@@ -48,7 +48,7 @@ const LandingPage = () => {
       'OPERATIONS RESEARCH',
       'QUANTUM AND NANO DEVICES/ QUANTUM COMPUTING',
       'MATERIALS AND MANUFACTURING'],
-    'Faculty of Commerce and Management': [],
+    'Faculty of Commerce and Management': ['ACCOUNTS','HUMAN RESOURCE','MARKETING','FINANCE','ECONOMICS'],
     'Faculty of Pharmaceutical Sciences': ['PHARMACEUTICAL CHEMISTRY', 
       'PHARMACEUTICS',	
       'PHARMACOLOGY',	
