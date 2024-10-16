@@ -46,6 +46,7 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
     const [fuse, setFuse] = useState(null);
     const { isOpen, onOpen, onClose } = useDisclosure();
 
+<<<<<<< HEAD
     // useEffect(() => {
     //     const hasVisited = getCookie('hasVisited');
     //     if (!hasVisited) {
@@ -53,6 +54,15 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
     //         setCookie('hasVisited', 'true', 365);
     //     }
     // }, []);
+=======
+    useEffect(() => {
+        const hasVisited = getCookie('hasVisited');
+        if (!hasVisited) {
+            
+            setCookie('hasVisited', 'true', 365);
+        }
+    }, []);
+>>>>>>> origin/main
 
  
     const fetchNames = async () => {
