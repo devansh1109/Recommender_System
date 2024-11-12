@@ -1,3 +1,4 @@
+.gitignore
 # Ignore node_modules in backend
 /backend/node_modules
 node_modules
