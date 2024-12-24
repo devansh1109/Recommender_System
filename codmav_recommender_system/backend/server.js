@@ -6,7 +6,7 @@ const denv = require('dotenv');
 denv.config();
 const jwt = require('jsonwebtoken');
 const app = express();
-const port = process.env.PORT || 8080; // Use PORT from .env or default to 8080
+const port = process.env.PORT || 9000; // Use PORT from .env or default to 9000
 
 const URI = process.env.NEO4J_URI;
 const USER = process.env.NEO4J_USER;
@@ -14,7 +14,11 @@ const PASSWORD = process.env.NEO4J_PASSWORD;
 
 let driver;
 
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
+  allowedHeaders: ['Authorization', 'Content-Type', 'X-Requested-With']
+}));
 app.use(bodyParser.json());
 
 // Middleware to establish Neo4j connection
@@ -32,6 +36,7 @@ app.use(async (req, res, next) => {
   }
   next();
 });
+
 
 app.get('/api/top-collaborators', async (req, res) => {
   const { domainName, personName } = req.query;

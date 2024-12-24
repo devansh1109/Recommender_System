@@ -29,7 +29,7 @@ const DomainVisualization = () => {
       setLoading(true);
       setError(null);
       // Use the department in the API URL
-      const response = await fetch(`http://localhost:8080/api/graph/${encodeURIComponent(department)}`);
+      const response = await fetch(`http://10.2.80.90:9000/api/graph/${encodeURIComponent(department)}`);
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }

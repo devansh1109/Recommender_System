@@ -234,7 +234,7 @@ def get_similar_papers(paper_id, n_results=5, exclude_ids=None):
 def home():
     return "Enhanced Academic Search Engine Flask server is running!"
 
-@app.route('/api/search', methods=['GET'])
+@app.route('/api/flask/search', methods=['GET'])
 def search():
     query = request.args.get('q', '')
     page = int(request.args.get('page', '1'))
@@ -246,7 +246,7 @@ def search():
     results = comprehensive_search(query, page, limit)
     return jsonify(results)
 
-@app.route('/api/similar', methods=['GET'])
+@app.route('/api/flask/similar', methods=['GET'])
 def similar():
     paper_id = request.args.get('id')
     exclude_ids = request.args.get('exclude', '').split(',')
@@ -265,7 +265,7 @@ def similar():
     except IndexError:
         return jsonify({'error': 'Paper ID not found'}), 404
 
-@app.route('/api/update_database', methods=['POST'])
+@app.route('/api/flask/update_database', methods=['POST'])
 def update_database():
     threading.Thread(target=check_and_update_database).start()
     return jsonify({'message': 'Database update started in background'}), 202
@@ -273,4 +273,5 @@ def update_database():
 if __name__ == '__main__':
     embeddings, metadata = load_embeddings_and_metadata('embeddings_metadata.pkl')
     check_and_update_database()
-    app.run(debug=False, threaded=True)
+    app.run(host="0.0.0.0",port=5000,debug=False, threaded=True)
+

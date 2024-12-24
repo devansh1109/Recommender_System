@@ -33,7 +33,7 @@ const CollaborationGraph = () => {
 
   const fetchNames = async () => {
     try {
-      const response = await fetch(`http://localhost:8080/api/persons/${department}`);
+      const response = await fetch(`http://10.2.80.90:9000/api/persons/${department}`);
       if (!response.ok) {
         throw new Error('Failed to fetch names');
       }

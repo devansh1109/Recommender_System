@@ -1,0 +1,14 @@
+{
+  "apps": [
+    {
+      "name": "flask-app",
+      "script": "/home/pesurf/PESU-CODMAV-2/Recommender_System/codmav_recommender_system/backend/app.py",
+      "interpreter": "/home/pesurf/anaconda3/envs/myenv/bin/python",
+      "exec_mode": "fork",
+      "env": {
+        "PORT": "5000",
+        "PATH": "/home/pesurf/anaconda3/envs/myenv/bin:$PATH"
+      }
+    }
+  ]
+}

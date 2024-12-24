@@ -30,11 +30,11 @@ const LandingPage = () => {
       'BIG DATA AND DATA ANALYTICS',
       'DATA MINING',
     ],
-    'Department of Electronics and Communication Engineering': [],
-    'Department of Mechanical Engineering': [],
-    'Department of Electrical and Electronics Engineering': [],
-    'Department of Biotechnology': [],
-    'Department of Civil Engineering': [],
+    'Department of Electronics and Communication Engineering': ['DIGITAL VLSI','ANALOG VLSI','SIGNAL PROCESSING','EMBEDDED SYSTEMS','COMMUNICATION ENGINEERING'],
+    // 'Department of Mechanical Engineering': [],
+    // 'Department of Electrical and Electronics Engineering': [],
+    // 'Department of Biotechnology': [],
+    // 'Department of Civil Engineering': [],
     'Department of Science and Humanities': ['Advanced Materials',
       'FLUID DYNAMICS',
       'GEOMETRIC FUNCTION THEORY',
@@ -42,19 +42,19 @@ const LandingPage = () => {
       'OPERATIONS RESEARCH',
       'QUANTUM AND NANO DEVICES/ QUANTUM COMPUTING',
       'MATERIALS AND MANUFACTURING'],
-    'Faculty of Commerce and Management': [],
+    'Faculty of Commerce and Management': ['ACCOUNTS','HUMAN RESOURCE','MARKETING','FINANCE','ECONOMICS'],
     'Faculty of Pharmaceutical Sciences': ['PHARMACEUTICAL CHEMISTRY', 
       'PHARMACEUTICS',	
       'PHARMACOLOGY',	
       'PHARMACOGNOSY', 	
       'PHARMACEUTICAL ANALYSIS',
       'PHARMACY PRACTICE'],
-    'Department of MCA': [],
-    'Department of MBA': [],
-    'Faculty of Law': [],
-    'Department of Architecture': [],
-    'Department of Psychology': [],
-    'Library': [],
+    // 'Department of MCA': [],
+    // 'Department of MBA': [],
+    // 'Faculty of Law': [],
+    // 'Department of Architecture': [],
+    // 'Department of Psychology': [],
+    // 'Library': [],
   };
 
   const departments = Object.keys(domains);
@@ -150,7 +150,7 @@ const LandingPage = () => {
   };
 
    const navigateToResearchPortal = ()=>{
-    window.location.href = "http://localhost:3000";
+    window.location.href = "http://10.2.80.90:8080";
   }
   
 

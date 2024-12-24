@@ -17,18 +17,20 @@ const ResultPage = () => {
   const [collaborationCounts, setCollaborationCounts] = useState([]);
   const [searchName, setSearchName] = useState('');
   const [searchTriggered, setSearchTriggered] = useState(false);
-  const [Token, setToken] = useState(''); 
-  const [facultyName,setFacultyName]=useState('');
+  const [Token, setToken] = useState('');
+  // const [professorDetail,setprofessorDetail]=useState('');
   const { isOpen, onOpen, onClose } = useDisclosure();
   const selectedDepartment = departmentParam || '';
   const selectedDomain = domainParam || '';
+  const [professorDetail, setProfessorDetail] = useState('');
+
 
   // useEffect(() => {
   //   const fetchData = async () => {
   //     try {
   //       const tokenFromCookie = getCookieValue('auth');
   //       if (tokenFromCookie) {
-  //         const TokenResponse = await fetch("http://localhost:8080/api/decode", {
+  //         const TokenResponse = await fetch("http://10.2.80.90:9000/api/decode", {
   //           method: 'POST',
   //           headers: {
   //             'Content-Type': 'application/json',
@@ -38,12 +40,12 @@ const ResultPage = () => {
 
   //         const TokenData = await TokenResponse.json();
   //         setSearchName(TokenData.name);
-  //         facultyName=TokenData.name 
-  //         facultyName = facultyName.replace(/^(Dr\. |Prof\. )\s*/, '');
-  //         console.log(facultyName);
+  //         professorDetail=TokenData.name 
+  //         professorDetail = professorDetail.replace(/^(Dr\. |Prof\. )\s*/, '');
+  //         console.log(professorDetail);
   //       }
 
-  //       const response = await fetch('http://localhost:8080/api/query', {
+  //       const response = await fetch('http://10.2.80.90:9000/api/query', {
   //         method: 'POST',
   //         headers: { 'Content-Type': 'application/json' },
   //         body: JSON.stringify({ domain: selectedDomain, department: selectedDepartment }),
@@ -62,7 +64,7 @@ const ResultPage = () => {
   //   };
 
   //   fetchData();
-  //   fetchTopCollaborators();
+
 
   //   // // Check if it's the first visit after the updated code
   //   // const hasVisitedResultPageAfterUpdate = Cookies.get('hasVisitedResultPageAfterUpdate');
@@ -73,29 +75,46 @@ const ResultPage = () => {
   // }, [selectedDomain, selectedDepartment, onOpen, Token]);
 
   useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const tokenFromCookie = getCookieValue('auth');
-      let facultyName = '';
+    const fetchData = async () => {
+      // try {
+      //   // const tokenFromCookie = getCookieValue('auth');
+      //   let professorDetail = '';
 
-      if (tokenFromCookie) {
-        const TokenResponse = await fetch("http://localhost:8080/api/decode", {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ jwt: tokenFromCookie }), 
+      // if (tokenFromCookie) {
+      //   const TokenResponse = await fetch("http://10.2.80.90:9000/api/decode", {
+      //     method: 'POST',
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //     },
+      //     body: JSON.stringify({ jwt: tokenFromCookie }), 
+      //   });
+
+      //   const TokenData = await TokenResponse.json();
+      //   professorDetail = TokenData.name;
+      //   professorDetail = professorDetail.replace(/^(Dr\. |Prof\. )\s*/, '');
+      //   setSearchName(professorDetail);
+      //   setprofessorDetail(professorDetail);
+      //   console.log(professorDetail);
+      // }
+
+      try {
+        // console.log("hello")
+        const Response = await fetch(`http://10.2.80.90:8081/api/v1/auth/verifyToken`, {
+          credentials: "include",
         });
-
-        const TokenData = await TokenResponse.json();
-        facultyName = TokenData.name;
-        facultyName = facultyName.replace(/^(Dr\. |Prof\. )\s*/, '');
-        setSearchName(facultyName);
-        setFacultyName(facultyName);
-        console.log(facultyName);
+        if (!Response.ok) {
+          throw new Error(`HTTP error! status: ${Response.status}`);
+        }
+        const professorData = await Response.json();
+        // console.log(professorData.user)
+        setProfessorDetail(professorData.user.name);
+      } catch (err) {
+        console.log(err.message);
       }
+      ;
 
-      const response = await fetch('http://localhost:8080/api/query', {
+
+      const response = await fetch('http://10.2.80.90:9000/api/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domain: selectedDomain, department: selectedDepartment }),
@@ -110,8 +129,8 @@ const ResultPage = () => {
       setError(null);
 
       // Fetch top collaborators if domain and faculty name are available
-      if (selectedDomain && facultyName) {
-        const collaboratorsResponse = await fetch(`http://localhost:8080/api/top-collaborators?domainName=${encodeURIComponent(selectedDomain)}&personName=${facultyName}`, {
+      if (selectedDomain && professorDetail) {
+        const collaboratorsResponse = await fetch(`http://10.2.80.90:9000/api/top-collaborators?domainName=${encodeURIComponent(selectedDomain)}&personName=${professorDetail}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         });
@@ -120,35 +139,31 @@ const ResultPage = () => {
         const collaboratorsData = await collaboratorsResponse.json();
 
         if (collaboratorsData.length === 0) {
-          setError(`No collaborator found for ${facultyName}`);
+          setError(`No collaborator found for ${professorDetail}`);
         } else {
           setCollaborationCounts(collaboratorsData);
           setSearchTriggered(true);
           setError(null);
         }
       }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      setError(error.message);
     }
-  };
 
-  fetchData();
-
-  // Optional: Check if it's the first visit after the updated code
-  // const hasVisitedResultPageAfterUpdate = Cookies.get('hasVisitedResultPageAfterUpdate');
-  // if (!hasVisitedResultPageAfterUpdate) {
-  //   onOpen(); // Open the guide modal
-  //   Cookies.set('hasVisitedResultPageAfterUpdate', 'true', { expires: 365 }); // Set cookie to expire in 1 year
-  // }
-}, [selectedDomain, selectedDepartment, onOpen, Token]);
+    fetchData();
+    fetchTopCollaborators();
+    // Optional: Check if it's the first visit after the updated code
+    // const hasVisitedResultPageAfterUpdate = Cookies.get('hasVisitedResultPageAfterUpdate');
+    // if (!hasVisitedResultPageAfterUpdate) {
+    //   onOpen(); // Open the guide modal
+    //   Cookies.set('hasVisitedResultPageAfterUpdate', 'true', { expires: 365 }); // Set cookie to expire in 1 year
+    // }
+  }, [selectedDomain, selectedDepartment, onOpen,professorDetail]);
 
 
   const fetchTopCollaborators = async () => {
     try {
-      if (!selectedDomain || !facultyName) return;
-      console.log("faculty name",facultyName)
-      const response = await fetch(`http://localhost:8080/api/top-collaborators?domainName=${encodeURIComponent(selectedDomain)}&personName=${facultyName}`, {
+      if (selectedDomain && professorDetail) {
+      console.log("faculty name", professorDetail)
+      const response = await fetch(`http://10.2.80.90:9000/api/top-collaborators?domainName=${encodeURIComponent(selectedDomain)}&personName=${professorDetail}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -157,12 +172,13 @@ const ResultPage = () => {
       const jsonData = await response.json();
 
       if (jsonData.length === 0) {
-        setError(`No collaborator found for ${facultyName}`);
+        setError(`No collaborator found for ${professorDetail}`);
       } else {
         setCollaborationCounts(jsonData);
         setSearchTriggered(true);
         setError(null);
       }
+    }
     } catch (error) {
       console.error('Error fetching top collaborators:', error);
       setError(error.message);
@@ -179,17 +195,17 @@ const ResultPage = () => {
     const parts = value.split(`; ${cookieName}=`);
     if (parts.length === 2) {
       const cookieValue = parts.pop().split(';').shift();
-      // console.log(cookieValue)
-      setToken(cookieValue); 
+      // console.log(cooprofessorDetailkieValue)
+      setToken(cookieValue);
       // console.log("cookie value : ",Token)
-      return cookieValue;  
+      return cookieValue;
     }
     return null;
   }
 
-  function loadfacultyName(){
-    if(facultyName){
-      return facultyName
+  function loadprofessorDetail() {
+    if (professorDetail) {
+      return professorDetail
     }
     return ""
   }
@@ -272,27 +288,28 @@ const ResultPage = () => {
         {/* Main Content */}
         <Flex width="100%" height="100%" direction="row">
           <Box width="30%" height="100%" display="flex" flexDirection="column" padding="20px">
-          <Box
-  width="100%"
-  height="40%"
-  border="1px solid #ccc"
-  overflow="hidden"
-  display="flex"
-  flexDirection="column"
-  boxSizing="border-box"
->
-  <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
-    Top 5 Suggested Collaborators 
-  </Text>
-  <p>{loadfacultyName()}</p>
-  <Divider mb="10px" />
-  <Box padding="10px">
-    {error && (
-      <Text color="red.500" mb="10px">
-        {error}
-      </Text>
-    )}
-    <Box maxHeight="calc(40vh - 80px)" overflowY="auto">
+            <Box
+              width="100%"
+              height="40%"
+              border="1px solid #ccc"
+              overflow="hidden"
+              display="flex"
+              flexDirection="column"
+              boxSizing="border-box"
+            >
+              <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
+                Top 5 Suggested Collaborators
+              </Text>
+              {/* <p>{professorDetail}</p> */}
+              {professorDetail && <p>{professorDetail}</p>}
+              <Divider mb="10px" />
+              <Box padding="10px">
+                {error && (
+                  <Text color="red.500" mb="10px">
+                    {error}
+                  </Text>
+                )}
+                <Box maxHeight="calc(40vh - 80px)" overflowY="auto">
       <List spacing={3}>
         {searchTriggered ? (
           collaborationCounts.length > 0 ? (
@@ -311,8 +328,8 @@ const ResultPage = () => {
         )}
       </List>
     </Box>
-  </Box>
-</Box>
+              </Box>
+            </Box>
 
 
             <Box
