@@ -286,7 +286,7 @@
 //                             boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
 //                         }}
 //                     >
-//                         Guide
+//                         Help
 //                     </button>
 //                 </div>
 //                 <h1 style={{
@@ -410,7 +410,7 @@
 //                 <Modal isOpen={isOpen} onClose={onClose}>
 //                     <ModalOverlay />
 //                     <ModalContent>
-//                         <ModalHeader>Guide</ModalHeader>
+//                         <ModalHeader></ModalHeader>
 //                         <ModalCloseButton />
 //                         <ModalBody>
 //                             <p>Here's how to use the domain visualization tool:</p>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, Text, Link, Divider, List, ListItem, Flex, Button, Input, ChakraProvider, extendTheme, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure } from '@chakra-ui/react';
 import GraphComponent from './GraphComponent';
+import { ArrowBackIcon, QuestionIcon } from '@chakra-ui/icons';
 const ResultPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -23,6 +24,8 @@ const ResultPage = () => {
   const selectedDepartment = departmentParam || '';
   const selectedDomain = domainParam || '';
   const [professorDetail, setProfessorDetail] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+const [searchResults, setSearchResults] = useState([]);
 
 
   // useEffect(() => {
@@ -99,7 +102,7 @@ const ResultPage = () => {
 
       try {
         // console.log("hello")
-        const Response = await fetch(`http://10.2.80.90:8081/api/v1/auth/verifyToken`, {
+        const Response = await fetch(`http://localhost:8081/api/v1/auth/verifyToken`, {
           credentials: "include",
         });
         if (!Response.ok) {
@@ -114,7 +117,7 @@ const ResultPage = () => {
       ;
 
 
-      const response = await fetch('http://10.2.80.90:9000/api/query', {
+      const response = await fetch('http://localhost:9000/api/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domain: selectedDomain, department: selectedDepartment }),
@@ -130,7 +133,7 @@ const ResultPage = () => {
 
       // Fetch top collaborators if domain and faculty name are available
       if (selectedDomain && professorDetail) {
-        const collaboratorsResponse = await fetch(`http://10.2.80.90:9000/api/top-collaborators?domainName=${encodeURIComponent(selectedDomain)}&personName=${professorDetail}`, {
+        const collaboratorsResponse = await fetch(`http://localhost:9000/api/top-collaborators?domainName=${encodeURIComponent(selectedDomain)}&personName=${professorDetail}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         });
@@ -159,11 +162,39 @@ const ResultPage = () => {
   }, [selectedDomain, selectedDepartment, onOpen,professorDetail]);
 
 
+  const handleSearch = async () => {
+    if (!searchQuery || !selectedDomain) return;
+    
+    try {
+      const response = await fetch(
+        `http://localhost:9000/api/top-collaborators?domainName=${encodeURIComponent(selectedDomain)}&personName=${encodeURIComponent(searchQuery)}`,
+        {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+  
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      const jsonData = await response.json();
+  
+      if (jsonData.length === 0) {
+        setError(`No collaborator found for ${searchQuery}`);
+        setSearchResults([]);
+      } else {
+        setSearchResults(jsonData);
+        setError(null);
+      }
+    } catch (error) {
+      console.error('Error searching collaborators:', error);
+      setError(error.message);
+    }
+  };
+
   const fetchTopCollaborators = async () => {
     try {
       if (selectedDomain && professorDetail) {
       console.log("faculty name", professorDetail)
-      const response = await fetch(`http://10.2.80.90:9000/api/top-collaborators?domainName=${encodeURIComponent(selectedDomain)}&personName=${professorDetail}`, {
+      const response = await fetch(`http://localhost:9000/api/top-collaborators?domainName=${encodeURIComponent(selectedDomain)}&personName=${professorDetail}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -212,159 +243,108 @@ const ResultPage = () => {
 
   return (
     <ChakraProvider theme={extendTheme({})}>
-      <Box p="20px">
-        {/* Top Button Container */}
-        <Flex
-          direction="row"
-          justifyContent="space-between"
-          position="relative"
-          mb="20px"
-        >
-          {/* Back Button */}
-          <Button
-            backgroundColor="gray.500"
-            color="#fff"
-            padding="10px 20px"
-            fontSize="16px"
-            border="none"
-            borderRadius="5px"
-            cursor="pointer"
-            boxShadow="0 2px 4px rgba(0,0,0,0.2)"
-            onClick={handlePrev}
-          >
-            Back
-          </Button>
-
-          {/* Guide Button */}
-          <Button
-            backgroundColor="rgb(0, 158, 96)"
-            color="#fff"
-            padding="10px 20px"
-            fontSize="16px"
-            border="none"
-            borderRadius="5px"
-            cursor="pointer"
-            boxShadow="0 2px 4px rgba(0,0,0,0.2)"
-            onClick={onOpen}
-          >
-            Guide
-          </Button>
-        </Flex>
-
-        {/* Guide Modal */}
-        <Modal isOpen={isOpen} onClose={onClose} size="lg">
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>Guide</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <p>Here's how to view domain better:</p>
-              <ol>
-                <li>Click on a faculty node or their expert id provided to view their profile.</li>
-                <li>Select a name from the dropdown to view top 5 collaborators.</li>
-                <li>Domain Experts are Faculty Members Explicitly Associated with This Field.</li>
-                <li>Contributors are the Faculty Members with Experience and Publications in This Field</li>
-                <li>Use the 'Back' button to return to the previous page.</li>
-              </ol>
-            </ModalBody>
-            <ModalFooter>
-              <Button colorScheme='blue' mr={3} onClick={onClose}>
-                Close
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
-
-        {/* Main Title */}
-        <Flex direction="column" alignItems="center" mb="20px">
-          <Text fontSize="2xl" fontWeight="bold" mb="10px">
-            Faculty Members Working in <i>{selectedDepartment.toUpperCase()}</i> Under <i>{selectedDomain.toUpperCase()}</i>
-          </Text>
-          <Text fontSize="20px" fontWeight="bold" fontStyle="italic" color="gray">
-            Click on a node or Expert ID to access the faculty profile.
-          </Text>
-        </Flex>
-
-        {/* Main Content */}
-        <Flex width="100%" height="100%" direction="row">
-          <Box width="30%" height="100%" display="flex" flexDirection="column" padding="20px">
-            <Box
-              width="100%"
-              height="40%"
-              border="1px solid #ccc"
-              overflow="hidden"
-              display="flex"
-              flexDirection="column"
-              boxSizing="border-box"
+      <Box p={6} bg="gray.50" minH="100vh">
+        {/* Header Section */}
+        <Flex direction="column" mb={6}>
+          <Flex justifyContent="space-between" mb={4}>
+            <Button
+              onClick={handlePrev}
+              colorScheme="gray"
+              leftIcon={<ArrowBackIcon />}
             >
-              <Text fontSize="xl" fontWeight="bold" textAlign="center" mb="10px">
+              Back
+            </Button>
+            <Button
+              onClick={onOpen}
+              colorScheme="teal"
+              rightIcon={<QuestionIcon />}
+            >
+              Help
+            </Button>
+          </Flex>
+  
+          <Flex direction="column" alignItems="center" mb={4}>
+            <Text fontSize="2xl" fontWeight="bold" textAlign="center" color="gray.800">
+              Faculty Members Working in <Text as="span" fontStyle="italic">{selectedDomain.toUpperCase()}</Text>
+            </Text>
+            <Text fontSize="xl" color="gray.600" mb={2}>
+              Department: <Text as="span" fontStyle="italic">{selectedDepartment.toUpperCase()}</Text>
+            </Text>
+            <Text fontSize="md" color="gray.500" fontStyle="italic">
+              Click on a node or Expert ID to access the faculty profile
+            </Text>
+          </Flex>
+        </Flex>
+  
+        {/* Main Content Grid */}
+        <Flex gap={4}>
+          {/* Left Column */}
+          <Box width="25%" display="flex" flexDirection="column" gap={4}>
+            {/* Top 5 Collaborators */}
+            <Box bg="white" borderRadius="xl" boxShadow="sm" p={4}>
+              <Text fontSize="lg" fontWeight="bold" color="teal.600" mb={2}>
                 Top 5 Suggested Collaborators
               </Text>
-              {/* <p>{professorDetail}</p> */}
-              {professorDetail && <p>{professorDetail}</p>}
-              <Divider mb="10px" />
-              <Box padding="10px">
-                {error && (
-                  <Text color="red.500" mb="10px">
-                    {error}
-                  </Text>
-                )}
-                <Box maxHeight="calc(40vh - 80px)" overflowY="auto">
-      <List spacing={3}>
-        {searchTriggered ? (
-          collaborationCounts.length > 0 ? (
-            collaborationCounts.map((collab, index) => (
-              <ListItem key={index} overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
-                <Text>
-                  {collab.collaboratorName}
+              {professorDetail && (
+                <Text fontSize="sm" color="gray.600" mb={2}>
+                  For: {professorDetail}
                 </Text>
-              </ListItem>
-            ))
-          ) : (
-            <ListItem>No top collaborators found</ListItem>
-          )
-        ) : (
-          <ListItem>Loading...</ListItem>
-        )}
-      </List>
-    </Box>
+              )}
+              <Divider mb={3} />
+              <Box maxH="300px" overflowY="auto">
+                <List spacing={2}>
+                  {searchTriggered ? (
+                    collaborationCounts.length > 0 ? (
+                      collaborationCounts.map((collab, index) => (
+                        <ListItem 
+                          key={index} 
+                          p={2} 
+                          _hover={{ bg: "gray.50" }}
+                          borderRadius="md"
+                        >
+                          <Text>{collab.collaboratorName}</Text>
+                        </ListItem>
+                      ))
+                    ) : (
+                      <ListItem>No top collaborators found</ListItem>
+                    )
+                  ) : (
+                    <ListItem>Loading...</ListItem>
+                  )}
+                </List>
               </Box>
             </Box>
-
-
-            <Box
-              width="100%"
-              height="30%"
-              border="1px solid #ccc"
-              mb="20px"
-              overflow="hidden"
-              display="flex"
-              flexDirection="column"
-              boxSizing="border-box"
-            >
-              <Text fontSize="21px" fontWeight="bold" textAlign="center" mb="10px">
-                {selectedDomain.toUpperCase()} Domain Expert
+  
+            {/* Domain Experts */}
+            <Box bg="white" borderRadius="xl" boxShadow="sm" p={4}>
+              <Text fontSize="lg" fontWeight="bold" color="blue.600" mb={2}>
+                Domain Experts ({directCount})
               </Text>
-              <Text fontSize="15px" fontStyle="italic" color="grey" fontWeight="bold" align="center">Faculty with primary expertise and significant work in this domain</Text>
-              <Text fontSize="md" textAlign="center" mb="9px" fontWeight="bold" fontStyle="italic">
-                Number of Faculty Members {directCount}
+              <Text fontSize="sm" color="gray.600" mb={2}>
+                Faculty with primary expertise in this domain
               </Text>
-              <Divider mb="10px" />
-              <Box maxHeight="calc(30vh - 80px)" overflowY="auto" padding="10px">
-                <List spacing={3}>
+              <Divider mb={3} />
+              <Box maxH="300px" overflowY="auto">
+                <List spacing={2}>
                   {directRecords.length > 0 ? (
                     directRecords.map((record, index) => (
-                      <ListItem key={index} overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
-                        <Text>
-                          {record.name} - 
+                      <ListItem 
+                        key={index} 
+                        p={2} 
+                        _hover={{ bg: "gray.50" }}
+                        borderRadius="md"
+                      >
+                        <Flex justify="space-between" align="center">
+                          <Text>{record.name}</Text>
                           <Link
                             href={`https://pes.irins.org/profile/${record.expertId}`}
                             isExternal
                             color="blue.500"
+                            fontSize="sm"
                           >
                             {record.expertId}
                           </Link>
-                        </Text>
+                        </Flex>
                       </ListItem>
                     ))
                   ) : (
@@ -373,50 +353,10 @@ const ResultPage = () => {
                 </List>
               </Box>
             </Box>
-
-            <Box
-              width="100%"
-              height="30%"
-              border="1px solid #ccc"
-              overflow="hidden"
-              display="flex"
-              flexDirection="column"
-              boxSizing="border-box"
-            >
-              <Text fontSize="21px" fontWeight="bold" textAlign="center" mb="10px">
-                {selectedDomain.toUpperCase()} Contributors
-              </Text>
-              <Text fontSize="15px" fontStyle="italic" color="grey" fontWeight="bold" align="center"> Faculty who have worked or published in this domain, though it is not their primary area of expertise.</Text>
-              <Text fontSize="md" textAlign="center" mb="10px" fontWeight="bold" fontStyle="italic">
-                Number of Similar Faculty Members {indirectCount}
-              </Text>
-              <Divider mb="10px" />
-              <Box maxHeight="calc(30vh - 80px)" overflowY="auto" padding="10px">
-                <List spacing={3}>
-                  {indirectRecords.length > 0 ? (
-                    indirectRecords.map((record, index) => (
-                      <ListItem key={index} overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
-                        <Text>
-                          {record.name} - 
-                          <Link
-                            href={`https://pes.irins.org/profile/${record.expertId}`}
-                            isExternal
-                            color="blue.500"
-                          >
-                            {record.expertId}
-                          </Link>
-                        </Text>
-                      </ListItem>
-                    ))
-                  ) : (
-                    <ListItem>No similar faculty results found</ListItem>
-                  )}
-                </List>
-              </Box>
-            </Box>
           </Box>
-
-          <Box width="70%" height="100%" p="20px">
+  
+          {/* Center - Graph */}
+          <Box width="50%" bg="white" borderRadius="xl" boxShadow="sm" p={4}>
             <GraphComponent
               department={selectedDepartment}
               domain={selectedDomain}
@@ -428,10 +368,116 @@ const ResultPage = () => {
               setIndirectCount={setIndirectCount}
             />
           </Box>
+  
+          {/* Right Column */}
+          <Box width="25%" display="flex" flexDirection="column" gap={4}>
+            {/* Search Faculty */}
+            <Box bg="white" borderRadius="xl" boxShadow="sm" p={4}>
+              <Text fontSize="lg" fontWeight="bold" color="purple.600" mb={2}>
+                Search Faculty Collaborators
+              </Text>
+              <Divider mb={3} />
+              <Flex mb={3}>
+                <Input
+                  placeholder="Enter faculty name"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  mr={2}
+                />
+                <Button
+                  onClick={handleSearch}
+                  colorScheme="purple"
+                >
+                  Search
+                </Button>
+              </Flex>
+              {error && (
+                <Text color="red.500" mb={2} fontSize="sm">
+                  {error}
+                </Text>
+              )}
+              <Box maxH="250px" overflowY="auto">
+                <List spacing={2}>
+                  {searchResults.map((collab, index) => (
+                    <ListItem 
+                      key={index} 
+                      p={2} 
+                      _hover={{ bg: "gray.50" }}
+                      borderRadius="md"
+                    >
+                      <Text>{collab.collaboratorName}</Text>
+                    </ListItem>
+                  ))}
+                </List>
+              </Box>
+            </Box>
+  
+            {/* Contributors */}
+            <Box bg="white" borderRadius="xl" boxShadow="sm" p={4}>
+              <Text fontSize="lg" fontWeight="bold" color="orange.600" mb={2}>
+                Contributors ({indirectCount})
+              </Text>
+              <Text fontSize="sm" color="gray.600" mb={2}>
+                Faculty with related work in this domain
+              </Text>
+              <Divider mb={3} />
+              <Box maxH="300px" overflowY="auto">
+                <List spacing={2}>
+                  {indirectRecords.length > 0 ? (
+                    indirectRecords.map((record, index) => (
+                      <ListItem 
+                        key={index} 
+                        p={2} 
+                        _hover={{ bg: "gray.50" }}
+                        borderRadius="md"
+                      >
+                        <Flex justify="space-between" align="center">
+                          <Text>{record.name}</Text>
+                          <Link
+                            href={`https://pes.irins.org/profile/${record.expertId}`}
+                            isExternal
+                            color="orange.500"
+                            fontSize="sm"
+                          >
+                            {record.expertId}
+                          </Link>
+                        </Flex>
+                      </ListItem>
+                    ))
+                  ) : (
+                    <ListItem>No contributors found</ListItem>
+                  )}
+                </List>
+              </Box>
+            </Box>
+          </Box>
         </Flex>
+  
+        {/* Guide Modal */}
+        <Modal isOpen={isOpen} onClose={onClose} size="lg">
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Help</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <List spacing={3}>
+                <ListItem>1. Click on a faculty node or their expert id to view their profile.</ListItem>
+                <ListItem>2. Select a name from the dropdown to view top 5 collaborators.</ListItem>
+                <ListItem>3. Domain Experts are Faculty Members explicitly associated with this field.</ListItem>
+                <ListItem>4. Contributors are Faculty Members with experience and publications in this field.</ListItem>
+                <ListItem>5. Use the 'Back' button to return to the previous page.</ListItem>
+              </List>
+            </ModalBody>
+            <ModalFooter>
+              <Button colorScheme="blue" onClick={onClose}>
+                Close
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
       </Box>
     </ChakraProvider>
   );
-};
+}
 
 export default ResultPage;
