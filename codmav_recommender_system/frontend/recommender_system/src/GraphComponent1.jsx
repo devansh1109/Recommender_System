@@ -48,7 +48,7 @@
 //     useEffect(() => {
 //         async function fetchData() {
 //             try {
-//                 const response = await fetch(`http://10.2.80.90:9000/api/graph/${department}`);
+//                 const response = await fetch(`http://10.2.80.40:9000/api/graph/${department}`);
 //                 if (!response.ok) {
 //                     throw new Error('Failed to fetch data');
 //                 }
@@ -106,7 +106,7 @@
 
 //     async function fetchTitles(domainId, domainName) {
 //         try {
-//             const response = await fetch(`http://10.2.80.90:9000/api/titles/${domainId}`);
+//             const response = await fetch(`http://10.2.80.40:9000/api/titles/${domainId}`);
 //             if (!response.ok) {
 //                 throw new Error('Failed to fetch titles');
 //             }
@@ -484,7 +484,7 @@ const GraphComponent1 = ({ department }) => {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await fetch(`http://10.2.80.90:9000/api/graph/${department}`);
+                const response = await fetch(`http://10.2.80.40:9000/api/graph/${department}`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch data');
                 }
@@ -538,7 +538,7 @@ const GraphComponent1 = ({ department }) => {
 
     async function fetchTitles(domainId, domainName) {
         try {
-            const response = await fetch(`http://10.2.80.90:9000/api/titles/${domainId}`);
+            const response = await fetch(`http://10.2.80.40:9000/api/titles/${domainId}`);
             if (!response.ok) {
                 throw new Error('Failed to fetch titles');
             }

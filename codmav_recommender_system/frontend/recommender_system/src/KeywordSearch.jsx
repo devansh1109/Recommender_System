@@ -18,7 +18,7 @@ const SearchResult = ({ result, excludeIds }) => {
       setLoading(true);
       setNoSimilarFound(false);
       try {
-        const response = await fetch(`http://10.2.80.90:5000/api/flask/similar?id=${result.id}&exclude=${excludeIds.join(',')}`);
+        const response = await fetch(`http://10.2.80.40:5000/api/flask/similar?id=${result.id}&exclude=${excludeIds.join(',')}`);
         if (response.status === 404) {
           setNoSimilarFound(true);
         } else if (!response.ok) {
@@ -128,7 +128,7 @@ const KeywordSearch = () => {
   const fetchResults = async (isLoadMore = false, searchQuery = query) => {
     setLoading(true);
     try {
-      const response = await fetch(`http://10.2.80.90:5000/api/flask/search?q=${encodeURIComponent(searchQuery)}&page=${page}&limit=20`);
+      const response = await fetch(`http://10.2.80.40:5000/api/flask/search?q=${encodeURIComponent(searchQuery)}&page=${page}&limit=20`);
       if (!response.ok) {
         throw new Error('Search request failed');
       }

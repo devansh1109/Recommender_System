@@ -33,7 +33,7 @@ const [searchResults, setSearchResults] = useState([]);
   //     try {
   //       const tokenFromCookie = getCookieValue('auth');
   //       if (tokenFromCookie) {
-  //         const TokenResponse = await fetch("http://10.2.80.90:9000/api/decode", {
+  //         const TokenResponse = await fetch("http://10.2.80.40:9000/api/decode", {
   //           method: 'POST',
   //           headers: {
   //             'Content-Type': 'application/json',
@@ -48,7 +48,7 @@ const [searchResults, setSearchResults] = useState([]);
   //         console.log(professorDetail);
   //       }
 
-  //       const response = await fetch('http://10.2.80.90:9000/api/query', {
+  //       const response = await fetch('http://10.2.80.40:9000/api/query', {
   //         method: 'POST',
   //         headers: { 'Content-Type': 'application/json' },
   //         body: JSON.stringify({ domain: selectedDomain, department: selectedDepartment }),
@@ -84,7 +84,7 @@ const [searchResults, setSearchResults] = useState([]);
       //   let professorDetail = '';
 
       // if (tokenFromCookie) {
-      //   const TokenResponse = await fetch("http://10.2.80.90:9000/api/decode", {
+      //   const TokenResponse = await fetch("http://10.2.80.40:9000/api/decode", {
       //     method: 'POST',
       //     headers: {
       //       'Content-Type': 'application/json',

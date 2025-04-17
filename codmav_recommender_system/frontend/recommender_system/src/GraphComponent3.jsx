@@ -57,7 +57,7 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
  
     const fetchNames = async () => {
         try {
-            const response = await fetch('http://10.2.80.90:9000/api/persons');
+            const response = await fetch('http://10.2.80.40:9000/api/persons');
             if (!response.ok) {
                 throw new Error('Failed to fetch names');
             }
@@ -94,7 +94,7 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
             setTitles([]);
             setSelectedCollaboration('');
  
-            const response = await fetch(`http://10.2.80.90:9000/api/collaborations/${name}`);
+            const response = await fetch(`http://10.2.80.40:9000/api/collaborations/${name}`);
             if (!response.ok) {
                 throw new Error('Failed to fetch data');
             }
@@ -153,7 +153,7 @@ const GraphComponent3 = ({ initialSearchQuery }) => {
         const collaborationId = edge.data('collaborationId');
  
         try {
-            const response = await fetch(`http://10.2.80.90:9000/api/collaboration/${collaborationId}/titles`);
+            const response = await fetch(`http://10.2.80.40:9000/api/collaboration/${collaborationId}/titles`);
             if (!response.ok) {
                 throw new Error('Failed to fetch titles');
             }

@@ -18,7 +18,7 @@ const GraphComponent = ({ domain }) => {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch(`http://10.2.80.90:9000/api/graph?domain=${domain}`);
+        const response = await fetch(`http://10.2.80.40:9000/api/graph?domain=${domain}`);
         if (!response.ok) {
           throw new Error(`Failed to fetch data: HTTP error! Status: ${response.status}`);
         }
